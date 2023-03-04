@@ -1,0 +1,47 @@
+{
+  "name": "wp-query-push",
+  "private": true,
+  "version": "0.1.0",
+  "main": "src/index.jsx",
+  "scripts": {
+    "dev": "vite",
+    "build": "wp-scripts build",
+    "start": "wp-scripts start",
+    "stan": "vendor/bin/phpstan analyse -c phpstan.neon",
+    "phpcs": "vendor/bin/phpcs --standard=ruleset.xml *.php includes/",
+    "phpbf": "vendor/bin/phpcbf --standard=ruleset.xml *.php includes/",
+    "test": "vendor/bin/phpunit tests",
+    "deploy": "zip -r wp-query-push.zip build/ wp-query-push.php includes/ && sudo docker cp wp-query-push.zip 223bb5b6bc13:/var/www/html/wp-content/plugins/wp-query-push"
+  },
+  "dependencies": {
+    "@sweetalert2/theme-wordpress-admin": "^5.0.15",
+    "ace-builds": "^1.15.2",
+    "json-2-csv": "^3.19.0",
+    "qs": "^6.11.0",
+    "react": "^17.0.2",
+    "react-ace": "^10.1.0",
+    "react-dom": "^17.0.2",
+    "react-hook-form": "^7.43.2",
+    "react-json-to-csv": "^1.2.0",
+    "react-table": "^7.8.0",
+    "react-tabs": "^4.2.1",
+    "regenerator-runtime": "^0.13.11",
+    "sweetalert2": "^11.7.2",
+    "sweetalert2-react-content": "^4.2.0",
+    "swr": "^2.0.4"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.27",
+    "@types/react-dom": "^18.0.10",
+    "@vitejs/plugin-react": "^3.1.0",
+    "@wordpress/scripts": "^24.6.0",
+    "autoprefixer": "^10.4.13",
+    "css-loader": "^3.6.0",
+    "miragejs": "^0.1.47",
+    "postcss": "^8.4.21",
+    "sass": "^1.58.3",
+    "style-loader": "^1.3.0",
+    "tailwindcss": "^3.2.7",
+    "vite": "^4.1.0"
+  }
+}

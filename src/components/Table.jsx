@@ -75,12 +75,12 @@ const Table = ({ columns, data, runtime, actionButtons }) => {
           globalFilter={state.globalFilter}
           setGlobalFilter={setGlobalFilter}
         />
-        { runtime && (
+        {/* runtime && (
           <p className="text-primary-dark">
             Query took:{" "}
             {<span className="font-bold">{`${runtime?.toFixed(2)} ms`}</span>}
           </p>
-        )}
+        )*/}
         { actionButtons }
       </div>
 

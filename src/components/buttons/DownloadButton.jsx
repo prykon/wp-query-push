@@ -20,7 +20,10 @@ const DownloadButton = () => {
     });
   };
   return(
-    <button onClick={showDownloadModal}>
+    <button
+      onClick={showDownloadModal}
+      className="buttons"
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         className="h-6 w-6 mr-1 inline"

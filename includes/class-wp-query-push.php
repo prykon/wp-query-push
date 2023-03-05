@@ -38,7 +38,7 @@ class Plugin
     private $TABLE_NAME_CONNECTIONS = "wpquerypush_connections";
     private $TABLE_NAME_LOGS = "wpquerypush_logs";
 
-    private $CRON_HOOK_NAME = "wpquerypush_cron_exec";
+    //private $CRON_HOOK_NAME = "wpquerypush_cron_exec";
 
     public function wpQueryPushAddCronInterval($schedules)
     {
@@ -48,32 +48,41 @@ class Plugin
         return $schedules;
     }
 
-    public function send( $id )
+    public function processTask( $query, $connection_id )
     {
-        do_action( 'qm/debug', 'SEND w/ ID: ' . $id );
-        $url = "https://fourth-chef-expires-smile.trycloudflare.com";
+        // run the query
+        $rs = $this->runQuery( $query );
+        do_action( 'qm/debug', 'SEND w/ RS: ' . $rs );
+        $data = json_encode( $rs );
+        do_action( 'qm/debug', 'SEND w/ ID: ' . $connection_id );
+        do_action( 'qm/debug', 'SEND w/ QUERY: ' . $query );
+        do_action( 'qm/debug', 'SEND w/ DATA: ' . $data );
+        // TODO: lookup the connection
+        $url = "https://immigrants-scotia-girls-collecting.trycloudflare.com";
+        $headers = array(
+            "Content-Type: application/json",
+            "Authorization: Bearer 123",
+        );
         $ch = curl_init($url);
         //$ts = date_format(date_create('@'. time()), 'c');
         date_default_timezone_set('UTC');
         $ts = date(DateTime::ATOM);
-        $customer_data = array(
-        "id" => $id,
-        "name" => "Janice Doe",
-        "ts" => $ts
-        );
-        $payload = json_encode(array( "customer" => $customer_data, "order" => "nachos" ));
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt(
             $ch,
             CURLOPT_HTTPHEADER,
-            array(
-            "Content-Type: application/json",
-            "Authorization: Bearer 123",
-            )
+            $headers
         );
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $result = curl_exec($ch);
+        $responseData = curl_exec($ch);
+        $errors = curl_error($ch);
+        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
+        return array(
+            "responseData" => $responseData,
+            "errors" => $errors,
+            "status" => $status,
+        );
     }
 
     /*
@@ -318,6 +327,17 @@ class Plugin
 
     public function handlePostScheduledTask($request)
     {
+        /*
+        {
+            "schedule": {
+                "connection": "2",
+                "interval": "daily",
+                "name": "D.T v1",
+                "start_dt": "2023-03-04T20:28",
+                "query": "SELECT * FROM wp_options;"
+            }
+        }
+        */
         // parse request
         $body = $request->get_body();
         $data = json_decode($body, true);
@@ -367,27 +387,95 @@ class Plugin
 
     public function handlePostConnection($request)
     {
-        // TODO: parse and validate request data
+        /*
+        {
+            "connection": {
+                "name": "FB",
+                "type": "http",
+                "requestData": {
+                    "url": "https://wearing-lesser-isle-psychiatry.trycloudflare.com",
+                    "headers": [
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "key": "Authorization",
+                            "value": "Bearer 123xyz"
+                        }
+                    ]
+                }
+            }
+        }
+        */
+        // parse and validate request
+        $body = $request->get_body();
+        $data = json_decode($body, true);
+        $name = $data["name"];
+        $type = $data["type"];
+        $requestData = $data["requestData"];
+        $url = $requestData["url"];
+        // validate request
+        if ( 
+            empty($name) ||
+            empty($type) ||
+            empty($url)
+        ) {
+            return wp_send_json([ "error" => "Bad Request" ], 400);
+        }
+        // insert into db
         global $wpdb;
         $table_name = $wpdb->prefix . $this->TABLE_NAME_CONNECTIONS;
-        $wpdb->insert($table_name, [ "name" => "test" ]);
+        $wpdb->insert(
+            $table_name,
+            array(
+            "name" => $name,
+            "type" => $type,
+            ),
+            array( "%s", "%s")
+         );
+        //"config" => json_encode($requestData),
         return wp_send_json([ "id" => $wpdb->insert_id ], 200);
     }
 
     public function handleSend($request)
     {
-        // TODO: parse and validate request data
-        // TODO: send via HTTP request
+        // parse and validate request
+        $body = $request->get_body();
+        $data = json_decode($body, true);
+        $query = $data["query"];
+        $connection_id = $data["connection"];
+        // validate request
+        if ( 
+            empty($query) ||
+            empty($connection_id)
+        ) {
+            return wp_send_json([ "error" => "Bad Request" ], 400);
+        }
+        // process task (manual)
+        $res = $this->processTask($query, $connection_id);
+        $responseData = $res["responseData"];
+        $errors = $res["errors"];
+        $status = $res["status"];
+        /*
+        if ( empty ( $responseData ) ) {
+            $responseData = $errors;
+        }
+        */
+        // insert log into db
         global $wpdb;
+        $current_user_id = get_current_user_id();
         $table_name = $wpdb->prefix . $this->TABLE_NAME_LOGS;
         $wpdb->insert(
             $table_name,
-            [
-            "action" => "manual",
-            "request" => "test",
-            "response" => "test",
-            "status" => "200"
-            ]
+            array( 
+                "query" => $query,
+                "connection_id" => $connection_id,
+                "user" => $current_user_id,
+                "response" => $responseData,
+                "status" => $status
+            ),
+            array( "%d", "%s", "%s", "%d", "%s", "%s")
         );
         return wp_send_json([ "id" => $wpdb->insert_id ], 200);
     }
@@ -425,14 +513,20 @@ class Plugin
             // insert query into db
             global $wpdb;
             $table_name = $wpdb->prefix . $this->TABLE_NAME_QUERIES;
-            $wpdb->insert($table_name, [ "query" => $query ]);
+            $wpdb->insert(
+                $table_name,
+                array(
+                    "query" => $query
+                ),
+                array( "%s" )
+            );
             return wp_send_json([ "id" => $wpdb->insert_id ], 200);
         } catch (Exception $e) {
             return wp_send_json([ "error" => "Server Error" ], 500);
         }
     }
 
-    public function handlePostQuery($request)
+    public function handleQuery($request)
     {
             //return $this->runQueryJSON("SELECT * FROM wp_dt_activity_log");
         try {
@@ -440,6 +534,7 @@ class Plugin
             if (empty($query) ) {
                 return wp_send_json([ "error" => "Bad Request" ], 400);
             }
+            /*
             // parse and validate query (only SELECTs permitted)
             $parser = new \PhpMyAdmin\SqlParser\Parser($query);
             foreach ( $parser->statements as $statement ) {
@@ -449,6 +544,7 @@ class Plugin
                     return wp_send_json([ "error" => "Invalid Query (only SELECT statements are permitted)" ], 400);
                 }
             }
+            */
             // return query results
             return $this->runQueryJSON($query);
         } catch (Exception $e) {

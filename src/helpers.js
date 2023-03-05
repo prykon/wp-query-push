@@ -4,6 +4,8 @@ import withReactContent from 'sweetalert2-react-content'
 // TODO: rename to "Modal" or "Alert" ?
 export const MySwal = withReactContent(Swal);
 
+import { isEmptyObject } from "@/utils";
+
 export const downloadFile = ({ data, fileName, fileType }) => {
   const blob = new Blob([data], { type: fileType });
 
@@ -40,6 +42,7 @@ export const fetcher = (resource, init) => fetch(resource, {
 export const post = async(url, body) => {
       const headers = {
         "Accept": "application/json",
+        "X-WP-Nonce": wpApiSettings.nonce
       };
       // TODO: overkill?
       if (JSON.parse(JSON.stringify(body))) {
@@ -63,4 +66,16 @@ export const post = async(url, body) => {
         data: null,
         error: "Server Error"
       };
+};
+
+export const toastErrors = (errors) => {
+  if (!isEmptyObject(errors)) {
+    console.error(errors);
+    (async () => {
+      await Toast.fire({
+        icon: 'error',
+        title: JSON.stringify(errors)
+      });
+    })();
+  };
 };

@@ -56,10 +56,10 @@ function wpquerypush_add_cron_interval( $schedules )
 add_filter( 'cron_schedules', 'wpquerypush_add_cron_interval' );
 */
 
-function wpquerypush_cron_exec( $id ) {
-    \WPQueryPush\Plugin::instance()->send( $id );
+function wpquerypush_cron_exec( $query, $connection_id ) {
+    \WPQueryPush\Plugin::instance()->processTask( $query, $connection_id );
 }
-add_action( 'wpquerypush_cron_hook', 'wpquerypush_cron_exec', 10, 1 );
+add_action( 'wpquerypush_cron_hook', 'wpquerypush_cron_exec', 10, 2 );
 
 function register_rest_routes()
 {
@@ -67,13 +67,31 @@ function register_rest_routes()
     register_rest_route($base_route, '/query', array(
     'methods' => 'POST',
     'callback' => function ($request) {
-        return \WPQueryPush\Plugin::instance()->handlePostQuery($request);
+        return \WPQueryPush\Plugin::instance()->handleQuery($request);
     },
     'permission_callback' => function () {
         return current_user_can('manage_options');
     }
     ));
-    register_rest_route($base_route, '/schedule-task', array(
+    register_rest_route($base_route, '/send', array(
+    'methods' => 'POST',
+    'callback' => function ($request) {
+        return \WPQueryPush\Plugin::instance()->handleSend($request);
+    },
+    'permission_callback' => function () {
+        return current_user_can('manage_options');
+    }
+    ));
+    register_rest_route($base_route, '/connections', array(
+    'methods' => 'POST',
+    'callback' => function ($request) {
+        return \WPQueryPush\Plugin::instance()->handlePostConnection($request);
+    },
+    'permission_callback' => function () {
+        return current_user_can('manage_options');
+    }
+    ));
+    register_rest_route($base_route, '/schedules', array(
     'methods' => 'POST',
     'callback' => function ($request) {
         return \WPQueryPush\Plugin::instance()->handlePostScheduledTask($request);

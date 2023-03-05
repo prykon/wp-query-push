@@ -3,6 +3,8 @@ import ConnectionModal from "@/components/modals/new/ConnectionModal";
 
 import { useEditor } from "@/hooks/use-editor";
 
+import { createConnection, createSchedule } from "@/api";
+
 //import Swal from "sweetalert2";
 import Swal from "sweetalert2/dist/sweetalert2.js";
 import withReactContent from 'sweetalert2-react-content'
@@ -10,6 +12,22 @@ const MySwal = withReactContent(Swal);
 
 const ScheduleButton = () => {
   const { query } = useEditor();
+  /*
+  const showNewIntervalModal = async() => {
+    return MySwal.fire({
+      title: 'New Interval',
+      showCloseButton: true,
+      showConfirmButton: false,
+      showClass: { backdrop: 'swal2-noanimation' },
+      hideClass: { backdrop: 'swal2-noanimation' },
+      html: (
+        <IntervalModal
+          onSubmit={handleIntervalModalSubmit}
+        />
+      ), 
+    });
+  };
+  */
   const showNewConnectionModal = async() => {
     return MySwal.fire({
       title: 'New Connection',
@@ -26,7 +44,7 @@ const ScheduleButton = () => {
   };
   const showScheduleModal = async({ connectionId }={}) => {
     return MySwal.fire({
-      title: 'Schedule',
+      title: 'New Schedule',
       showCloseButton: true,
       showConfirmButton: false,
       showClass: { backdrop: 'swal2-noanimation' },
@@ -34,6 +52,7 @@ const ScheduleButton = () => {
       html: (
         <ScheduleModal
           connectionId={connectionId} 
+          //onAddInterval={showNewIntervalModal}
           onAddConnection={showNewConnectionModal}
           onSubmit={handleScheduleModalSubmit}
         />
@@ -41,19 +60,30 @@ const ScheduleButton = () => {
     });
   };
   const handleConnectionModalSubmit = async(data) => {
-    console.log("*** HANDLE CONNECTION MODAL SUBMIT ***", data);
-    // TODO: pass in new Connection ID
-    await showScheduleModal();
+    const res = await createConnection({ connection: data });
+    if (res.error) {
+      console.error(res.error);
+      return;
+    };
+    const connectionId = res.data.id; 
+    await showScheduleModal({ connectionId });
   };
   const handleScheduleModalSubmit = async(data) => {
     data["query"] = query;
-    console.log("*** HANDLE SCHEDULE MODAL SUBMIT ***", data);
-    //MySwal.close();
+    const res = await createSchedule({ schedule: data });
+    if (res.error) {
+      console.error(res.error);
+      return;
+    };
+    MySwal.close();
   };
   return(
-    <button onClick={async() => {
-      await showScheduleModal();
-    }}>
+    <button
+      onClick={async() => {
+        await showScheduleModal();
+      }}
+      className="buttons"
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         className="h-6 w-6 mr-1 inline"

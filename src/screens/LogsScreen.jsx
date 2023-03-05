@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 
 import Table from "@/components/Table";
+//import DownloadButton from "@/components/buttons/DownloadButton";
 
 import useLogs from "@/hooks/use-logs";
 
@@ -23,6 +24,7 @@ const LogsScreen = () => {
         <Table
           columns={memoizedColumns}
           data={memoizedData}
+          //actionButtons={<DownloadButton />}
         />
       ) : (
         <div className="flex items-center justify-center h-96">

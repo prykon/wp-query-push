@@ -1531,6 +1531,20 @@ const getLogs = (schema, request) => {
   return OK(data);
 };
 
+const createConnection = (schema, request) => {
+  //console.log("request body: ", request.requestBody);
+  return OK({ id: 2 });
+};
+
+const createSchedule = (schema, request) => {
+  return OK({});
+};
+
+const send = (schema, request) => {
+  return SERVER_ERROR("Server Error");
+  //return OK({});
+};
+
 export const v1 = (server) => {
   server.namespace = "/wp-json/wpquerypush";
   server.timing = 2000;
@@ -1544,6 +1558,9 @@ export const v1 = (server) => {
   server.get("/v1/logs", (schema, request) => getLogs(schema, request));
   server.get("/v1", (schema, request) => healthCheck(schema, request));
   server.get("*", () => NOT_FOUND());
+  server.post("/v1/connections", (schema, request) => createConnection(schema, request));
+  server.post("/v1/schedules", (schema, request) => createSchedule(schema, request));
+  server.post("/v1/send", (schema, request) => send(schema, request));
   server.post("/v1/query", (schema, request) => simulateQuery1(schema, request));
   server.post("/v1/query-1", (schema, request) => simulateQuery1(schema, request));
   server.post("/v1/query-2", (schema, request) => simulateQuery2(schema, request));

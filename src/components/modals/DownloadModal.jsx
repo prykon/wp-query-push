@@ -43,12 +43,13 @@ const DownloadModal = ({ data }) => {
         id="type"
         value={type}
         onChange={(evt) => setType(evt.target.value)}
-        className="w-full"
+        className="modalFields w-full py-2"
       >
         <option key="1" value="csv">CSV</option>
         <option key="2" value="json">JSON</option>
       </select>
-      <button onClick={onSubmit}>Download</button>
+      <div className="h-4" />
+      <button type="button" onClick={onSubmit} className="modalButtons">Download</button>
     </div>
   );
 };

@@ -3,13 +3,17 @@ import ConnectionModal from "@/components/modals/new/ConnectionModal";
 
 import { useEditor } from "@/hooks/use-editor";
 
+import { createConnection, send } from "@/api";
+
+import { toastErrors } from "@/helpers";
+
 //import Swal from "sweetalert2";
 import Swal from "sweetalert2/dist/sweetalert2.js";
 import withReactContent from 'sweetalert2-react-content'
 const MySwal = withReactContent(Swal);
 
 const SendButton = () => {
-  const { resultSet } = useEditor();
+  const { query, resultSet } = useEditor();
   const showNewConnectionModal = async() => {
     return MySwal.fire({
       title: 'New Connection',
@@ -24,7 +28,7 @@ const SendButton = () => {
       ), 
     });
   };
-  const showSendModal = async() => {
+  const showSendModal = async({ connectionId }) => {
     return MySwal.fire({
       title: 'Send',
       showCloseButton: true,
@@ -33,22 +37,49 @@ const SendButton = () => {
       hideClass: { backdrop: 'swal2-noanimation' },
       html: (
         <SendModal
+          connectionId={connectionId} 
           data={resultSet} 
+          onAddConnection={showNewConnectionModal}
           onSubmit={handleSendModalSubmit}
         />
       ), 
     });
   };
   const handleConnectionModalSubmit = async(data) => {
-    console.log("*** HANDLE CONNECTION MODAL SUBMIT ***", data);
-    // TODO: pass in new Connection ID
-    await showSendModal();
+    const connectionData = {
+      name: data.name,
+      type: data.type,
+      requestData: {
+        url: data.url,
+        //method: data.method,
+        headers: data.headers
+      }
+    };
+    const res = await createConnection(connectionData);
+    if (res.error) {
+      console.error(res.error);
+      return;
+    };
+    const connectionId = res.data.id; 
+    await showSendModal({ connectionId });
   };
   const handleSendModalSubmit = async(data) => {
-    console.log("*** HANDLE SEND MODAL SUBMIT ***", data);
+    data["query"] = query;
+    const res = await send({ data });
+    console.log("res", res);
+    if (res.error) {
+      console.error(res.error);
+      // TODO
+      //toastErrors(res.error);
+      return;
+    };
+    MySwal.close();
   };
   return(
-    <button onClick={showSendModal}>
+    <button
+      onClick={showSendModal}
+      className="buttons"
+    >
       Send
       <svg
         xmlns="http://www.w3.org/2000/svg"

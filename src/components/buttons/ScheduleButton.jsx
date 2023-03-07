@@ -40,6 +40,8 @@ const ScheduleButton = () => {
           onSubmit={handleConnectionModalSubmit}
         />
       ), 
+      //grow: "row"
+      width: "50%"
     });
   };
   const showScheduleModal = async({ connectionId }={}) => {
@@ -60,7 +62,7 @@ const ScheduleButton = () => {
     });
   };
   const handleConnectionModalSubmit = async(data) => {
-    const res = await createConnection({ connection: data });
+    const res = await createConnection(data);
     if (res.error) {
       console.error(res.error);
       return;
@@ -70,7 +72,7 @@ const ScheduleButton = () => {
   };
   const handleScheduleModalSubmit = async(data) => {
     data["query"] = query;
-    const res = await createSchedule({ schedule: data });
+    const res = await createSchedule(data);
     if (res.error) {
       console.error(res.error);
       return;

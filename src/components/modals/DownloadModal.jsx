@@ -8,7 +8,6 @@ import { json2csvAsync } from "json-2-csv";
 
 const exportCSV = async(data) => {
   const csvData = await json2csvAsync(data);
-  console.log("csvData: ", csvData);
   return downloadFile({
     data: csvData,
     fileName: "Untitled.csv",

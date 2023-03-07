@@ -48,89 +48,80 @@ class Plugin
         return $schedules;
     }
 
-    public function processTask( $query, $connection_id )
+    private function getConnection($connection_id)
     {
-        // run the query
-        $rs = $this->runQuery( $query );
-        do_action( 'qm/debug', 'SEND w/ RS: ' . $rs );
-        $data = json_encode( $rs );
-        do_action( 'qm/debug', 'SEND w/ ID: ' . $connection_id );
-        do_action( 'qm/debug', 'SEND w/ QUERY: ' . $query );
-        do_action( 'qm/debug', 'SEND w/ DATA: ' . $data );
-        // TODO: lookup the connection
-        $url = "https://immigrants-scotia-girls-collecting.trycloudflare.com";
-        $headers = array(
-            "Content-Type: application/json",
-            "Authorization: Bearer 123",
+        global $wpdb;
+        $table_name = $wpdb->prefix . $this->TABLE_NAME_CONNECTIONS;
+        $sql = "SELECT * FROM $table_name WHERE id = $connection_id";
+        $connection = $wpdb->get_row($sql);
+        return $connection;
+    }
+
+    private function insertLog($connection_id, $query, $response)
+    {
+        error_log(print_r($response, true));
+        global $wpdb;
+        $current_user_id = get_current_user_id();
+        $table_name = $wpdb->prefix . $this->TABLE_NAME_LOGS;
+        $wpdb->insert(
+            $table_name,
+            array(
+                "query" => $query,
+                "connection_id" => $connection_id,
+                "user" => $current_user_id,
+                "response" => $response['responseData'],
+                "status" => $response['status']
+            ),
+            array( "%s", "%d", "%s", "%s", "%s")
         );
+        //return wp_send_json([ "id" => $wpdb->insert_id ], 200);
+    }
+
+    public function processTask($connection_id, $query)
+    {
+        // lookup the connection
+        $connection = $this->getConnection($connection_id);
+        $requestData = json_decode($connection->config);
+        // prep the request
+        $url = $requestData->url;
+        $headers = $requestData->headers;
+        // map headers into curl format
+        $mapped_headers = [];
+        foreach ($headers as $object) {
+            foreach ($object as $key => $value) {
+                $mapped_headers[] = "$key: $value";
+            }
+        }
+        // run the query
+        $rs = $this->runQuery($query);
+        $data = json_encode($rs);
+        // configure curl
         $ch = curl_init($url);
         //$ts = date_format(date_create('@'. time()), 'c');
         date_default_timezone_set('UTC');
         $ts = date(DateTime::ATOM);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        curl_setopt(
-            $ch,
-            CURLOPT_HTTPHEADER,
-            $headers
-        );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $mapped_headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $responseData = curl_exec($ch);
         $errors = curl_error($ch);
         $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-        return array(
+    // response object
+        $response = array(
             "responseData" => $responseData,
             "errors" => $errors,
             "status" => $status,
         );
+        // insert log into db
+        $log_id = $this->insertLog($connection_id, $query, $response);
+    // return response (for manual use)
+        return $response;
     }
-
-    /*
-    private function renderPluginPage() {
-        require_once $WPQUERYPUSH_PLUGIN_BASE . 'templates/app.php';
-    }
-    */
-
-    /*
-    private function initMenu()
-    {
-        $slug          = "wpquerypush";
-        $menu_position = 50;
-        $capability    = 'manage_options';
-        $logo_icon     = $WPQUERYPUSH_PLUGIN_BASE . 'assets/images/wp-react-kit-logo.png';
-
-        add_menu_page(
-            esc_attr__( 'WP Query Push', 'wpquerypush' ),
-            esc_attr__( 'WP Query Push', 'wpquerypush' ),
-            $capability,
-            $slug,
-            [ $this, 'render_plugin_page' ],
-            $logo_icon,
-            $menu_position
-        );
-            add_menu_page(
-                'WP Query Push',
-                'WP Query Push',
-                'manage_options',
-                'wpquerypush',
-        [ $this, 'render_plugin_page' ],
-                'dashicons-database',
-                999999999
-            );
-    }
-     */
 
     public function activate()
     {
-        //add_action( 'wpquerypush_cron_hook', array( $this, 'zzCronExec' ), 10, 1 );
-        //add_action( 'wpquerypush_cron_hook', array( get_called_class(), 'zzCronExec' ), 10, 1 );
-        // schedule any cronjobs
-        // TODO: this will be user specified
-        wp_schedule_event(time(), 'every_minute', 'wpquerypush_cron_hook', [ 123 ]);
-        wp_schedule_event(time(), 'every_minute', 'wpquerypush_cron_hook', array( 456 ));
         // create any tables
-        $this->createTableQueries();
-        $this->createTableScheduledTasks();
         $this->createTableConnections();
         $this->createTableLogs();
         // update any options
@@ -140,14 +131,15 @@ class Plugin
     public function deactivate()
     {
         // unschedule any cronjobs
+        // TODO: loop?
         $timestamp = wp_next_scheduled('wpquerypush_cron_hook');
         wp_unschedule_event($timestamp, 'wpquerypush_cron_hook');
         // drop any tables
         // TODO: move to uninstall
-        $this->dropTableQueries();
-        $this->dropTableScheduledTasks();
         $this->dropTableConnections();
         $this->dropTableLogs();
+        // remove any cronjobs
+        remove_action('wpquerypush_cron_hook', 'wpquerypush_cron_exec', 10, 2);
     }
 
     public function uninstall()
@@ -155,8 +147,6 @@ class Plugin
         // remove any cronjobs
         //remove_action( 'wpquerypush_cron_hook', 'NEEDS TO BE SAME', 10 );
         // drop any tables
-        $this->dropTableQueries();
-        $this->dropTableScheduledTasks();
         $this->dropTableConnections();
         $this->dropTableLogs();
         // delete any options
@@ -190,25 +180,26 @@ class Plugin
         $this->createTable($sql);
     }
 
+    /*
     private function createTableScheduledTasks()
     {
         global $wpdb;
         $table_name = $wpdb->prefix . $this->TABLE_NAME_SCHEDULED_TASKS;
         $wpdb_collate = $wpdb->collate;
         $sql = "CREATE TABLE {$table_name} (
-			id INT NOT NULL AUTO_INCREMENT,
-			name VARCHAR(255),
+            id INT NOT NULL AUTO_INCREMENT,
+            name VARCHAR(255),
             start_ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            interval_name VARCHAR(255),
-            interval_secs INT,
+            interval_key VARCHAR(255),
             connection_id INT,
             query TEXT,
-			PRIMARY KEY (id)
-		)
-		COLLATE {$wpdb_collate}";
+            PRIMARY KEY (id)
+        )
+        COLLATE {$wpdb_collate}";
 
         $this->createTable($sql);
     }
+    */
 
     private function createTableConnections()
     {
@@ -218,23 +209,8 @@ class Plugin
         $sql = "CREATE TABLE {$table_name} (
 			id INT NOT NULL AUTO_INCREMENT,
 			name VARCHAR(255),
-            type TINYINT,
+            type VARCHAR(100),
             config JSON,
-			PRIMARY KEY (id)
-		)
-		COLLATE {$wpdb_collate}";
-
-        $this->createTable($sql);
-    }
-
-    private function createTableQueries()
-    {
-        global $wpdb;
-        $table_name = $wpdb->prefix . $this->TABLE_NAME_QUERIES;
-        $wpdb_collate = $wpdb->collate;
-        $sql = "CREATE TABLE {$table_name} (
-			id INT NOT NULL AUTO_INCREMENT,
-			query TEXT,
 			PRIMARY KEY (id)
 		)
 		COLLATE {$wpdb_collate}";
@@ -255,22 +231,10 @@ class Plugin
         $this->dropTable($wpdb->prefix . $this->TABLE_NAME_LOGS);
     }
 
-    private function dropTableScheduledTasks()
-    {
-        global $wpdb;
-        $this->dropTable($wpdb->prefix . $this->TABLE_NAME_SCHEDULED_TASKS);
-    }
-
     private function dropTableConnections()
     {
         global $wpdb;
         $this->dropTable($wpdb->prefix . $this->TABLE_NAME_CONNECTIONS);
-    }
-
-    private function dropTableQueries()
-    {
-        global $wpdb;
-        $this->dropTable($wpdb->prefix . $this->TABLE_NAME_QUERIES);
     }
 
     private function runQuery($query)
@@ -329,39 +293,33 @@ class Plugin
     {
         /*
         {
-            "schedule": {
-                "connection": "2",
-                "interval": "daily",
-                "name": "D.T v1",
-                "start_dt": "2023-03-04T20:28",
-                "query": "SELECT * FROM wp_options;"
-            }
+            "query": "SELECT * FROM wp_options;",
+            "start_dt": "2023-03-04T20:28",
+            "interval": "daily",
+            "connection": "2"
         }
         */
         // parse request
         $body = $request->get_body();
         $data = json_decode($body, true);
-        $name = $data["name"];
-        $start_ts = $data["start_ts"];
-        $interval_name = $data["interval_name"];
-        $interval_secs = $data["interval_secs"];
-        $connection_id = $data["connection_id"];
         $query = $data["query"];
+        $start_ts = $data["start_ts"];
+        $interval = $data["interval"];
+        $connection_id = $data["connection"];
         // validate request
-        if ( 
-            empty($name) ||
-            empty($interval_name) ||
-            empty($interval_secs) ||
-            empty($connection_id) ||
-            empty($query)
+        if (
+            empty($query) ||
+            empty($interval) ||
+            empty($connection_id)
         ) {
             return wp_send_json([ "error" => "Bad Request" ], 400);
         }
-        if ( empty( $start_ts ) ) {
+        if ( empty($start_ts) ) {
             $start_ts = time();
         } else {
             $start_ts = strtotime($start_ts);
         }
+        /*
         // insert into db
         global $wpdb;
         $table_name = $wpdb->prefix . $this->TABLE_NAME_SCHEDULED_TASKS;
@@ -370,41 +328,38 @@ class Plugin
             array(
                 "name" => $name,
                 "start_ts" => $start_ts,
-                "interval_name" => $interval_name,
-                "interval_secs" => $interval_secs,
+                "interval_key" => $interval,
                 "connection_id" => $connection_id,
                 "query" => $query
             ),
             array( "%s", "%s", "%s", "%d", "%d", "%s")
         );
         $id = $wpdb->insert_id;
+        */
         // schedule cronjob
-        // TODO: use interval_name
-        wp_schedule_event($start_ts, 'every_minute', 'wpquerypush_cron_hook', array( $id ) );
+        wp_schedule_event($start_ts, $interval, 'wpquerypush_cron_hook', array( $connection_id, $query ));
         // return response
-        return wp_send_json([ "id" => $id ], 200);
+        return wp_send_json([], 200);
     }
 
     public function handlePostConnection($request)
     {
         /*
         {
-            "connection": {
-                "name": "FB",
-                "type": "http",
-                "requestData": {
-                    "url": "https://wearing-lesser-isle-psychiatry.trycloudflare.com",
-                    "headers": [
-                        {
-                            "key": "Content-Type",
-                            "value": "application/json"
-                        },
-                        {
-                            "key": "Authorization",
-                            "value": "Bearer 123xyz"
-                        }
-                    ]
-                }
+            "name": "FB",
+            "type": "http",
+            "requestData": {
+                "url": "https://wearing-lesser-isle-psychiatry.trycloudflare.com",
+                "headers": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer 123xyz"
+                    }
+                ]
             }
         }
         */
@@ -416,7 +371,7 @@ class Plugin
         $requestData = $data["requestData"];
         $url = $requestData["url"];
         // validate request
-        if ( 
+        if (
             empty($name) ||
             empty($type) ||
             empty($url)
@@ -431,10 +386,10 @@ class Plugin
             array(
             "name" => $name,
             "type" => $type,
+            "config" => json_encode($requestData),
             ),
-            array( "%s", "%s")
-         );
-        //"config" => json_encode($requestData),
+            array( "%s", "%s", "%s")
+        );
         return wp_send_json([ "id" => $wpdb->insert_id ], 200);
     }
 
@@ -446,14 +401,14 @@ class Plugin
         $query = $data["query"];
         $connection_id = $data["connection"];
         // validate request
-        if ( 
+        if (
             empty($query) ||
             empty($connection_id)
         ) {
             return wp_send_json([ "error" => "Bad Request" ], 400);
         }
         // process task (manual)
-        $res = $this->processTask($query, $connection_id);
+        $res = $this->processTask($connection_id, $query);
         $responseData = $res["responseData"];
         $errors = $res["errors"];
         $status = $res["status"];
@@ -462,22 +417,7 @@ class Plugin
             $responseData = $errors;
         }
         */
-        // insert log into db
-        global $wpdb;
-        $current_user_id = get_current_user_id();
-        $table_name = $wpdb->prefix . $this->TABLE_NAME_LOGS;
-        $wpdb->insert(
-            $table_name,
-            array( 
-                "query" => $query,
-                "connection_id" => $connection_id,
-                "user" => $current_user_id,
-                "response" => $responseData,
-                "status" => $status
-            ),
-            array( "%d", "%s", "%s", "%d", "%s", "%s")
-        );
-        return wp_send_json([ "id" => $wpdb->insert_id ], 200);
+        return wp_send_json([], 200);
     }
 
     public function handlePostInterval($request)

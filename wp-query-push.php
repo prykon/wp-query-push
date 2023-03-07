@@ -56,10 +56,11 @@ function wpquerypush_add_cron_interval( $schedules )
 add_filter( 'cron_schedules', 'wpquerypush_add_cron_interval' );
 */
 
-function wpquerypush_cron_exec( $query, $connection_id ) {
-    \WPQueryPush\Plugin::instance()->processTask( $query, $connection_id );
+function wpquerypush_cron_exec($query, $connection_id)
+{
+    \WPQueryPush\Plugin::instance()->processTask($query, $connection_id);
 }
-add_action( 'wpquerypush_cron_hook', 'wpquerypush_cron_exec', 10, 2 );
+add_action('wpquerypush_cron_hook', 'wpquerypush_cron_exec', 10, 2);
 
 function register_rest_routes()
 {

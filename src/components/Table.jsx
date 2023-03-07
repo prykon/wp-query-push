@@ -7,7 +7,6 @@ import {
   usePagination,
 } from "react-table";
 import PageButton from "@/components/buttons/PageButton";
-import TableActions from "@/components/TableActions";
 
 const GlobalFilter = ({
   preGlobalFilteredRows,
@@ -22,12 +21,20 @@ const GlobalFilter = ({
   return (
     <>
       <label className="flex gap-x-2 items-baseline">
-        <span className="text-primary-dark hidden md:inline-block font-semibold">
-          Search:{" "}
+        <span className="hidden md:inline-block mr-2">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 inline mr-1"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+          </svg>
+          Search:
         </span>
         <input
           type="text"
-          className="text-primary-dark rounded-md border-2 border-gray-300 focus:border-primary-dark transition p-2 w-40 md:w-52 "
+          className="rounded-md border-2 border-neutral-300 focus:border-neutral-700 transition p-2 w-40 md:w-52 "
           value={value || ""}
           onChange={(e) => {
             setValue(e.target.value);
@@ -90,7 +97,7 @@ const Table = ({ columns, data, runtime, actionButtons }) => {
           {...getTableProps()}
           className="min-w-full divide-y divide-gray-200"
         >
-          <thead className="bg-primary-dark">
+          <thead className="bg-indigo-900">
             {headerGroups.map((headerGroup) => (
               <tr {...headerGroup.getHeaderGroupProps()}>
                 {headerGroup.headers.map((column) => (

@@ -10,15 +10,23 @@ import { MySwal } from "@/helpers";
 import { runQuery } from "@/api";
 
 const SQLEditor = () => {
-  const { query, setQuery, setRuntime, setResultSet } = useEditor();
-  const [fetchTables, setFetchTables] = useState(false);
+  const {
+    query,
+    isShowTables,
+    setQuery,
+    setRuntime,
+    setResultSet,
+    setIsShowTables
+  } = useEditor();
+  //const [fetchTables, setFetchTables] = useState(false);
   //const defaultValue = "SELECT * FROM wp_options;"; 
   const placeholder = "SELECT * FROM wp_options;";
   const onClear = () => {
     setQuery('');
     setRuntime(null);
     setResultSet(null);
-    setFetchTables(false);
+    //setFetchTables(false);
+    setIsShowTables(false);
   };
   return(
     <>
@@ -30,8 +38,6 @@ const SQLEditor = () => {
           onClear();
           setQuery(query);
           const { data, error } = await runQuery({ query });
-	  console.log("data: ", data);
-	  console.log("error: ", error);
           if (data && !error) {
             setRuntime(42.4211118);
             setResultSet(data);
@@ -40,14 +46,14 @@ const SQLEditor = () => {
         onClear={onClear}
         onSave={async(data) => {
           data["query"] = query;
-          console.log("*** ON SAVE QUERY: ", data);
           // if successs, close modal, display success toast
           // if error, leave modal open, display error toast
           MySwal.close();
         }}
         onShowTables={() => {
           onClear();
-          setFetchTables(true);
+          setIsShowTables(true);
+          //setFetchTables(true);
         }}
         /*
         extraEditorActionButtons={(
@@ -57,7 +63,7 @@ const SQLEditor = () => {
         )}
         */
       />
-      { fetchTables && (
+      { isShowTables && (
         <FetchTables />
       )}
     </>

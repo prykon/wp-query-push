@@ -1,7 +1,4 @@
 import { OK, NOT_FOUND, SERVER_ERROR } from "@/services/miragejs/responses";
-import { authRouter } from "./auth";
-import { usersRouter } from "./users";
-//import { webhooksRouter } from "./webhooks";
 
 const healthCheck = (schema, request) => {
   return OK({ "v1": "ok" });
@@ -1486,6 +1483,7 @@ const getConnections = (schema, request) => {
     },
   ];
   const mappedData = data.map((item) => ({ id: item.id, name: item.name }));
+  //return OK([]);
   return OK(mappedData);
 };
 
@@ -1532,7 +1530,6 @@ const getLogs = (schema, request) => {
 };
 
 const createConnection = (schema, request) => {
-  //console.log("request body: ", request.requestBody);
   return OK({ id: 2 });
 };
 
@@ -1549,9 +1546,6 @@ export const v1 = (server) => {
   server.namespace = "/wp-json/wpquerypush";
   server.timing = 2000;
   //this.options("*", (schema, request) => handleOptions(schema, request));
-  //authRouter(server);
-  //usersRouter(server);
-  //webhooksRouter(server);
   server.get("/v1/connections", (schema, request) => getConnections(schema, request));
   server.get("/v1/intervals", (schema, request) => getIntervals(schema, request));
   server.get("/v1/tables", (schema, request) => getTables(schema, request));

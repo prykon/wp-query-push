@@ -23,7 +23,7 @@ const App = () => {
       value={{
         refreshInterval: 3000,
         // TODO: global fetcher is not working?
-        //fetcher: (resource, init) => fetch(resource, init).then(res => { console.log("*** FETCHER RES: ", res); res.json() })
+        //fetcher: (resource, init) => fetch(resource, init).then(res => res.json() })
         //fetcher: url => fetch(url).then(r => r.json())
       }}
     >

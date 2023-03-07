@@ -1,6 +1,7 @@
 import React, {
   createContext,
   useContext,
+  useEffect,
   useState,
 } from "react";
 
@@ -17,13 +18,16 @@ const useCustomEditor = () => {
   const [query, setQuery] = useState(null);
   const [runtime, setRuntime] = useState(null);
   const [resultSet, setResultSet] = useState(null);
+  const [isShowTables, setIsShowTables] = useState(false);
   return {
     query,
     runtime,
     resultSet,
+    isShowTables,
     setQuery,
     setRuntime,
-    setResultSet
+    setResultSet,
+    setIsShowTables
   };
 };
 

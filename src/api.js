@@ -14,9 +14,9 @@ export const runQuery = async({ query }) => {
   };
 };
 
-export const scheduleTask = async({ task }) => {
+export const scheduleTask = async(data) => {
   const url = "/wp-json/wpquerypush/v1/schedule-task";
-  const body = JSON.stringify({ task });
+  const body = JSON.stringify(data);
   try {
     return post(url, body);
   } catch(error) {
@@ -28,9 +28,19 @@ export const scheduleTask = async({ task }) => {
   };
 };
 
-export const createConnection = async(connectionData) => {
+export const createConnection = async(data) => {
+  const mappedHeaders = data?.headers?.map(header => ({ [header.key]: header.value }));
+  const mappedData = {
+    name: data.name,
+    type: data.type,
+    requestData: {
+      url: data.url,
+      //method: data.method,
+      headers: mappedHeaders
+    }
+  };
   const url = "/wp-json/wpquerypush/v1/connections";
-  const body = JSON.stringify(connectionData);
+  const body = JSON.stringify(mappedData);
   try {
     return post(url, body);
   } catch(error) {
@@ -42,9 +52,9 @@ export const createConnection = async(connectionData) => {
   };
 };
 
-export const createSchedule = async({ schedule }) => {
+export const createSchedule = async(data) => {
   const url = "/wp-json/wpquerypush/v1/schedules";
-  const body = JSON.stringify({ schedule });
+  const body = JSON.stringify(data);
   try {
     return post(url, body);
   } catch(error) {
@@ -56,7 +66,7 @@ export const createSchedule = async({ schedule }) => {
   };
 };
 
-export const send = async({ data }) => {
+export const send = async(data) => {
   const url = "/wp-json/wpquerypush/v1/send";
   const body = JSON.stringify(data);
   try {

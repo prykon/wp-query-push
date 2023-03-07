@@ -8,7 +8,7 @@ import { useEditor } from "@/hooks/use-editor";
 //import Loader from "@/assets/loader.svg";
 
 const TableSection = React.memo(() => {
-  const { runtime, resultSet } = useEditor();
+  const { runtime, resultSet, isShowTables } = useEditor();
   const memoizedColumns = useMemo(() => {
     if (resultSet?.length > 0) {
       return Object?.keys(resultSet?.[0])?.map((key) => {
@@ -28,7 +28,7 @@ const TableSection = React.memo(() => {
           columns={memoizedColumns}
           data={memoizedData}
           runtime={runtime}
-          actionButtons={<TableActions />}
+          actionButtons={!isShowTables && <TableActions />}
         />
       ) : (
         <div className="flex items-center justify-center h-96">

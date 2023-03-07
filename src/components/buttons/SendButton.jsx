@@ -46,16 +46,7 @@ const SendButton = () => {
     });
   };
   const handleConnectionModalSubmit = async(data) => {
-    const connectionData = {
-      name: data.name,
-      type: data.type,
-      requestData: {
-        url: data.url,
-        //method: data.method,
-        headers: data.headers
-      }
-    };
-    const res = await createConnection(connectionData);
+    const res = await createConnection(data);
     if (res.error) {
       console.error(res.error);
       return;
@@ -65,8 +56,7 @@ const SendButton = () => {
   };
   const handleSendModalSubmit = async(data) => {
     data["query"] = query;
-    const res = await send({ data });
-    console.log("res", res);
+    const res = await send(data);
     if (res.error) {
       console.error(res.error);
       // TODO

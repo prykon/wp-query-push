@@ -3,7 +3,11 @@ import { Controller, useForm, useFieldArray } from "react-hook-form";
 import { AddButton, RemoveButton } from "@/components/buttons/Button";
 
 const ConnectionModal = ({ onSubmit }) => {
-  const { register, control, handleSubmit, formState: { errors } } = useForm();
+  const { register, control, handleSubmit, formState: { errors } } = useForm({
+    defaultValues: {
+      headers: [{ key: "", value: "" }]
+    }
+  });
   const { fields, append, remove } = useFieldArray({ control, name: "headers" });
   if (errors) {
     console.error(errors);
@@ -25,9 +29,9 @@ const ConnectionModal = ({ onSubmit }) => {
       <div id="headers" className="flex flex-col space-y-2">
         {fields.map((item, index) => (
           <div key={item.id} className="flex flex-row space-x-2">
-            <input type="text" placeholder="Key" {...register(`headers.${index}.key`)} className="modalFields p-2" />
+            <input type="text" placeholder="Key" {...register(`headers.${index}.key`)} className="modalFields p-2 w-1/2" />
             <Controller
-              render={({ field }) => <input type="text" placeholder="Value" {...field} className="modalFields p-2" />}
+              render={({ field }) => <input type="text" placeholder="Value" {...field} className="modalFields p-2 w-1/2" />}
               name={`headers.${index}.value`}
               control={control}
             />

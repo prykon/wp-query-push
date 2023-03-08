@@ -59,7 +59,6 @@ class Plugin
 
     private function insertLog($connection_id, $query, $response)
     {
-        error_log(print_r($response, true));
         global $wpdb;
         $current_user_id = get_current_user_id();
         $table_name = $wpdb->prefix . $this->TABLE_NAME_LOGS;

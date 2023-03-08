@@ -7,17 +7,11 @@ on:
 
 env:
   PLUGIN_SLUG: wp-query-push
-  #PLUGIN_DIR: wp-content/plugins/${PLUGIN_SLUG}
-  #RELEASE_DIR: releases
   ZIP_FILE: ${PLUGIN_SLUG}-${{ github.ref_name }}.zip
 
 jobs:
   build_release:
     runs-on: ubuntu-latest
-
-    #defaults:
-    #  run:
-    #    working-directory: ${PLUGIN_DIR}
 
     steps:
     - name: Checkout code

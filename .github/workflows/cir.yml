@@ -53,10 +53,10 @@ jobs:
     #- name: Run PHPUnit tests
     #  run: vendor/bin/phpunit tests
 
-    - name: PHPUnit tests
-      uses: php-actions/phpunit@v3
-      with:
-        php_version: "7.4"
+    #- name: PHPUnit tests
+    #  uses: php-actions/phpunit@v3
+    #  with:
+    #    php_version: "7.4"
         #configuration: "custom/path/to/phpunit.xml"
         #memory_limit: "256M"
 

@@ -7,6 +7,7 @@ on:
 
 env:
   PLUGIN_SLUG: wp-query-push
+  #PLUGIN_DIR: wp-content/plugins/${PLUGIN_SLUG}
   RELEASE_DIR: releases
   ZIP_FILE: ${PLUGIN_SLUG}-${{ github.ref_name }}.zip
 
@@ -14,38 +15,57 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    #defaults:
+    #  run:
+    #    working-directory: ${PLUGIN_DIR}
+
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
-    - name: Cache Composer packages
-      id: composer-cache
-      uses: actions/cache@v2
-      with:
-        path: vendor
-        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-php-
-  
-    - name: Install dependencies
+    - name: Install OS dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y zip
 
-    - name: Install Composer packages
-      if: steps.composer-cache.outputs.cache-hit != 'true'
-      run: composer install --no-dev --no-interaction --no-progress --optimize-autoloader
+    - name: Cache Composer dependencies
+      uses: actions/cache@v3
+      with:
+        path: /tmp/composer-cache
+        key: ${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
 
-    - name: Run PHP STatic ANalysis
-      run: vendor/bin/phpstan analyse -c phpstan.neon
+    - name: Install Composer dependencies
+      uses: php-actions/composer@v6
+      with:
+        php_version: "7.4"
+        quiet: "yes"
+
+    #- name: Run PHP STatic ANalysis
+    #  run: vendor/bin/phpstan analyse -c phpstan.neon
+
+    - name: PHPStan Static Analysis
+      uses: php-actions/phpstan@v3
+      with:
+        php_version: "7.4"
+        configuration: ./phpstan.neon
+        memory_limit: "256M"
 
     #- name: Run PHPUnit tests
     #  run: vendor/bin/phpunit tests
 
-    - name: Setup Node
-      uses: actions/setup-node@v1
+    - name: PHPUnit tests
+      uses: php-actions/phpunit@v3
+      with:
+        php_version: "7.4"
+        #configuration: "custom/path/to/phpunit.xml"
+        memory_limit: "256M"
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
       with:
         node-version: 18.x
+        #node-version: 'lts/*'
+        cache: 'npm'
 
     - name: Install NPM packages 
       run: npm install
@@ -57,7 +77,7 @@ jobs:
     #  run: npm run test --if-present
 
     - name: Create release ZIP file
-      run: zip -r ${ZIP_FILE} ${PLUGIN_SLUG}.php LICENSE build includes templates vendor
+      run: zip -r ../${ZIP_FILE} ${PLUGIN_SLUG}.php LICENSE build includes templates vendor
 
     - name: Upload release ZIP file
       uses: actions/upload-artifact@v2

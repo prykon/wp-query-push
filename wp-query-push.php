@@ -4,7 +4,7 @@
  * Plugin Name:       WP Query Push
  * Plugin URI:        https://wpquerypush.com
  * Description:       WP Query Push enables flexible, push-based analytics. Schedule SQL queries to be periodically pushed, or push one-off/adhoc queries, to an external service (ie, HTTP/S).
- * Version:           0.2.0
+ * Version:           0.3.0
  * Requires at least: 5.2
  * Requires PHP:      7.4
  * Author:            Jane Doe
@@ -21,15 +21,19 @@ if (!defined('ABSPATH')) {
 }
 
 define('WPQUERYPUSH_NAME', 'WP Query Push');
-define('WPQUERYPUSH_VERSION', '0.2.0');
+define('WPQUERYPUSH_VERSION', '0.3.0');
 define('WPQUERYPUSH_SETUP', true);
 define('WPQUERYPUSH_PLUGIN_BASE', plugin_basename(__FILE__));
 define('WPQUERYPUSH_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WPQUERYPUSH_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WPQUERYPUSH_TEXTDOMAIN', 'wp-query-push');
-define('WPQUERYPUSH_PLUGIN_SLUG', 'wp-query-push');
+
+#require plugin_dir_path( __FILE__ ) . 'vendor/autoload.php';
 
 require_once plugin_dir_path(__FILE__) . 'includes/class-wp-query-push.php';
+
+require plugin_dir_path(__FILE__) . 'vendor/yahnis-elsts/plugin-update-checker/plugin-update-checker.php';
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
 function wpquerypush_activate()
 {
@@ -211,10 +215,20 @@ function enqueue_admin_scripts()
 }
 add_action('admin_enqueue_scripts', 'enqueue_admin_scripts');
 
+add_action('plugins_loaded', function () {
+    if ( is_admin() && !( wp_doing_cron() )) {
+        $myUpdateChecker = PucFactory::buildUpdateChecker(
+            'https://raw.githubusercontent.com/zdmc23/wp-query-push/main/plugin.json',
+            __FILE__,
+            'wp-query-push' 
+        );
+    }
+});
+
 function auto_update_specific_plugins ( $update, $item )
 {
     // enable auto-update for *THIS* plugin only
-    if ( $item->slug == $WPQUERY_PLUGIN_SLUG ) {
+    if ( $item->slug == 'wp-query-push' ) {
         return true;
     } else {
         return $update;

@@ -1,11 +1,13 @@
 {
     "require": {
         "friendsofphp/php-cs-fixer": "^3.14",
-        "phpmyadmin/sql-parser": "^5.7"
+        "phpmyadmin/sql-parser": "^5.7",
+        "yahnis-elsts/plugin-update-checker": "^5.0"
     },
     "autoload": {
         "classmap": [
-            "includes/"
+            "includes/",
+            "vendor/"
         ]
     },
     "require-dev": {

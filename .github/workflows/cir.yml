@@ -80,7 +80,7 @@ jobs:
       run: zip -r ../${ZIP_FILE} ${PLUGIN_SLUG}.php LICENSE build includes templates vendor
 
     - name: Upload release ZIP file
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: ${ZIP_FILE}
         path: ${ZIP_FILE}
@@ -91,10 +91,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Download release ZIP file
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: ${ZIP_FILE}
         path: ${RELEASE_DIR}

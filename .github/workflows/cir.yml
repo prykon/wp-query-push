@@ -37,10 +37,10 @@ jobs:
       run: composer install --no-dev --no-interaction --no-progress --optimize-autoloader
 
     - name: Run PHP STatic ANalysis
-      run: vendor/bin/phpstan analyse -c phpstan.neon
+      run: ./vendor/bin/phpstan analyse -c phpstan.neon
 
     #- name: Run PHPUnit tests
-    #  run: vendor/bin/phpunit tests
+    #  run: ./vendor/bin/phpunit tests
 
     - name: Setup Node
       uses: actions/setup-node@v1

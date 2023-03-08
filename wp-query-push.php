@@ -4,7 +4,7 @@
  * Plugin Name:       WP Query Push
  * Plugin URI:        https://wpquerypush.com
  * Description:       WP Query Push enables flexible, push-based analytics. Schedule SQL queries to be periodically pushed, or push one-off/adhoc queries, to an external service (ie, HTTP/S).
- * Version:           0.3.1
+ * Version:           0.3.2
  * Requires at least: 5.2
  * Requires PHP:      7.4
  * Author:            zdmc23

@@ -1,0 +1,98 @@
+name: CI and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  PLUGIN_SLUG: wp-query-push
+  PLUGIN_DIR: wp-content/plugins/${PLUGIN_SLUG}
+  RELEASE_DIR: releases
+  ZIP_FILE: ${PLUGIN_SLUG}-${{ github.ref }}.zip
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v2
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+  
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y zip
+
+    - name: Install Composer packages
+      if: steps.composer-cache.outputs.cache-hit != 'true'
+      run: |
+        cd ${PLUGIN_DIR}
+        composer install --no-dev --no-interaction --no-progress --optimize-autoloader
+
+    - name: Run PHP STatic ANalysis
+      run: |
+        cd ${PLUGIN_DIR}
+        vendor/bin/phpstan analyse -c phpstan.neon
+
+    - name: Run PHPUnit tests
+      run: |
+        cd ${PLUGIN_DIR}
+        vendor/bin/phpunit tests
+
+    - name: Create release ZIP file
+      run: |
+        cd ${PLUGIN_DIR}
+        zip -r ../${ZIP_FILE} ${PLUGIN_SLUG}.php LICENSE build includes templates vendor
+
+    - name: Upload release ZIP file
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${ZIP_FILE}
+        path: ${ZIP_FILE}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Download release ZIP file
+      uses: actions/download-artifact@v2
+      with:
+        name: ${ZIP_FILE}
+        path: ${RELEASE_DIR}
+
+    - name: Create GitHub release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+
+    - name: Upload release asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${RELEASE_DIR}/${ZIP_FILE}
+        asset_name: ${ZIP_FILE}
+        asset_content_type: application/zip

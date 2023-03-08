@@ -7,7 +7,7 @@ on:
 
 env:
   PLUGIN_SLUG: wp-query-push
-  ZIP_FILE: wp-query-push-${{ github.ref_name }}.zip
+  ZIP_FILE: wp-query-push.zip
 
 jobs:
   build_release:

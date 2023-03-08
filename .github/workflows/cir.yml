@@ -48,7 +48,7 @@ jobs:
       with:
         php_version: "7.4"
         configuration: ./phpstan.neon
-        memory_limit: "256M"
+        #memory_limit: "256M"
 
     #- name: Run PHPUnit tests
     #  run: vendor/bin/phpunit tests
@@ -58,7 +58,7 @@ jobs:
       with:
         php_version: "7.4"
         #configuration: "custom/path/to/phpunit.xml"
-        memory_limit: "256M"
+        #memory_limit: "256M"
 
     - name: Setup Node.js
       uses: actions/setup-node@v3

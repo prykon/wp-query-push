@@ -7,7 +7,7 @@ on:
 
 env:
   PLUGIN_SLUG: wp-query-push
-  ZIP_FILE: ${PLUGIN_SLUG}-${{ github.ref_name }}.zip
+  ZIP_FILE: wp-query-push-${{ github.ref_name }}.zip
 
 jobs:
   build_release:
@@ -72,7 +72,7 @@ jobs:
     #  run: npm run test --if-present
 
     - name: Create release ZIP file
-      run: zip -r ${ZIP_FILE} ${PLUGIN_SLUG}.php LICENSE build includes templates vendor
+      run: zip -r ${{ env.ZIP_FILE }} ${{ env.PLUGIN_SLUG }}.php LICENSE build includes templates vendor
 
     - name: Create GitHub release
       id: create_release
@@ -93,6 +93,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ../${ZIP_FILE}
-        asset_name: ${ZIP_FILE}
+        asset_path: ./${{ env.ZIP_FILE }}
+        asset_name: ${{ env.ZIP_FILE }}
         asset_content_type: application/zip

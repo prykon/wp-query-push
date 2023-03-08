@@ -38,6 +38,7 @@ jobs:
       uses: php-actions/composer@v6
       with:
         php_version: "7.4"
+        dev: "no"
         quiet: "yes"
 
     #- name: Run PHP STatic ANalysis
@@ -77,7 +78,7 @@ jobs:
     #  run: npm run test --if-present
 
     - name: Create release ZIP file
-      run: zip -r ../${ZIP_FILE} ${PLUGIN_SLUG}.php LICENSE build includes templates vendor
+      run: zip -r ${ZIP_FILE} ${PLUGIN_SLUG}.php LICENSE build includes templates vendor
 
     - name: Upload release ZIP file
       uses: actions/upload-artifact@v3

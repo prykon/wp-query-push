@@ -72,7 +72,10 @@ jobs:
     #  run: npm run test --if-present
 
     - name: Create release ZIP file
-      run: zip -r ${{ env.ZIP_FILE }} ${{ env.PLUGIN_SLUG }}.php LICENSE build includes templates vendor
+      run: |
+        mkdir ${{ env.PLUGIN_SLUG }}
+        cp -r LICENSE ${{ env.PLUGIN_SLUG }}.php index.php build includes templates vendor ${{ env.PLUGIN_SLUG }}/
+        zip -r ${{ env.ZIP_FILE }} ${{ env.PLUGIN_SLUG }}
 
     - name: Create GitHub release
       id: create_release

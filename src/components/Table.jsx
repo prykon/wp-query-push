@@ -8,6 +8,11 @@ import {
 } from "react-table";
 import PageButton from "@/components/buttons/PageButton";
 
+//import Swal from "sweetalert2";
+import Swal from "sweetalert2/dist/sweetalert2.js";
+import withReactContent from 'sweetalert2-react-content'
+const MySwal = withReactContent(Swal);
+
 const GlobalFilter = ({
   preGlobalFilteredRows,
   globalFilter,
@@ -45,6 +50,16 @@ const GlobalFilter = ({
       </label>
     </>
   );
+};
+
+const handleTruncatedCellClick = (value) => {
+  return MySwal.fire({
+    title: '',
+    showCloseButton: true,
+    showConfirmButton: false,
+    html: <div className="p-4 font-mono text-sm">{value}</div>, 
+    //grow: "row"
+  });
 };
 
 const Table = ({ columns, data, runtime, actionButtons }) => {
@@ -95,7 +110,7 @@ const Table = ({ columns, data, runtime, actionButtons }) => {
       <div className="overflow-auto">
         <table
           {...getTableProps()}
-          className="min-w-full divide-y divide-gray-200"
+          className="min-w-full divide-y divide-gray-200 border-2 border-neutral-900"
         >
           <thead className="bg-indigo-900">
             {headerGroups.map((headerGroup) => (
@@ -130,14 +145,18 @@ const Table = ({ columns, data, runtime, actionButtons }) => {
             {page.map((row, i) => {
               prepareRow(row);
               return (
-                <tr {...row.getRowProps()}>
+                <tr {...row.getRowProps()} style={{ backgroundColor: i % 2 === 0 ? '#f2f2f2' : '' }}>
                   {row.cells.map((cell) => {
                     return (
                       <td
                         {...cell.getCellProps()}
                         className="px-4 py-4 whitespace-nowrap text-sm text-gray-500"
                       >
-                        {cell.render("Cell")}
+                        { cell.value?.length > 50 ? (
+                          <a onClick={()=>handleTruncatedCellClick(cell.value)} className="underline cursor-pointer">
+                            {cell.value?.substring(0, 50) + '...'}
+                          </a>
+                        ) : cell.render("Cell")}
                       </td>
                     );
                   })}

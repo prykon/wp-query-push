@@ -1516,7 +1516,17 @@ const getLogs = (schema, request) => {
       "request": "[{\"table_name\":\"wp_options\"}]"
     },
     {
-      "ts": "2022-07-28T15:30:00.000Z",
+      "ts": "2022-07-28T14:30:00.000Z",
+      "user": "user-0",
+      "type": "system",
+      "query": "## direct messages SELECT 'direct_messsages' AS metric, COUNT(*) AS count FROM wp_dt_activity_log WHERE hist_time > UNIX_TIMESTAMP(DATE_ADD(CURDATE(),INTERVAL -2000 DAY)) AND meta_key='overall_status' AND meta_value='from_facebook' UNION ALL ## bible delivered SELECT 'bibles_delivered' AS metric, COUNT(*) AS count FROM wp_dt_activity_log WHERE hist_time > UNIX_TIMESTAMP(DATE_ADD(CURDATE(),INTERVAL -2000 DAY)) AND meta_key='milestones' AND meta_value='milestone_has_bible' UNION ALL ## contacts SELECT 'contacts' AS metric, COUNT(*) AS count FROM wp_dt_activity_log WHERE hist_time > UNIX_TIMESTAMP(DATE_ADD(CURDATE(),INTERVAL -2000 DAY)) AND action='created' AND object_type='contacts' UNION ALL ## first meeting metric SELECT 'first_meetings' AS metric, COUNT(*) AS count FROM wp_dt_activity_log WHERE hist_time > UNIX_TIMESTAMP(DATE_ADD(CURDATE(),INTERVAL -2000 DAY)) AND meta_key='seeker_path' AND meta_value='met' AND old_value != 'scheduled' UNION ALL ## profession of faith SELECT 'professions_of_faith' AS metric, COUNT(*) AS count FROM wp_dt_activity_log WHERE hist_time > UNIX_TIMESTAMP(DATE_ADD(CURDATE(),INTERVAL -2000 DAY)) AND meta_key='milestones' AND meta_value='milestone_belief' UNION ALL ## baptism SELECT 'baptized' AS metric, COUNT(*) AS count FROM wp_dt_activity_log WHERE hist_time > UNIX_TIMESTAMP(DATE_ADD(CURDATE(),INTERVAL -2000 DAY)) AND meta_key='milestones' AND meta_value='milestone_baptized' UNION ALL ## groups SELECT 'groups' AS metric, COUNT(*) AS count FROM wp_dt_activity_log WHERE hist_time > UNIX_TIMESTAMP(DATE_ADD(CURDATE(),INTERVAL -2000 DAY)) AND action='created' AND object_type='groups'",
+      "connection_name": "Make.com",
+      "status": "404",
+      "response": "{\"error\": \"Unauthorized\"}",
+      "request": ""
+    },
+    {
+      "ts": "2022-07-28T13:30:00.000Z",
       "user": "user-42",
       "type": "manual",
       "query": "SELECT * FROM dt_activity_log LIMIT 10",
@@ -1555,7 +1565,8 @@ export const v1 = (server) => {
   server.post("/v1/connections", (schema, request) => createConnection(schema, request));
   server.post("/v1/schedules", (schema, request) => createSchedule(schema, request));
   server.post("/v1/send", (schema, request) => send(schema, request));
-  server.post("/v1/query", (schema, request) => simulateQuery1(schema, request));
+  //server.post("/v1/query", (schema, request) => simulateQuery1(schema, request));
+  server.post("/v1/query", (schema, request) => simulateQuery2(schema, request));
   server.post("/v1/query-1", (schema, request) => simulateQuery1(schema, request));
   server.post("/v1/query-2", (schema, request) => simulateQuery2(schema, request));
   server.post("/v1/query-3", (schema, request) => simulateQuery3(schema, request));

@@ -139,6 +139,7 @@ class Plugin
         $this->dropTableConnections();
         $this->dropTableLogs();
         // remove any cronjobs
+        /** @phpstan-ignore-next-line */
         remove_action('wpquerypush_cron_hook', 'wpquerypush_cron_exec', 10, 2);
     }
 

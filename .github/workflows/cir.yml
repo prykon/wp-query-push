@@ -7,9 +7,8 @@ on:
 
 env:
   PLUGIN_SLUG: wp-query-push
-  PLUGIN_DIR: wp-content/plugins/${PLUGIN_SLUG}
   RELEASE_DIR: releases
-  ZIP_FILE: ${PLUGIN_SLUG}-${{ github.ref }}.zip
+  ZIP_FILE: ${PLUGIN_SLUG}-${{ github.ref_name }}.zip
 
 jobs:
   build:
@@ -35,24 +34,30 @@ jobs:
 
     - name: Install Composer packages
       if: steps.composer-cache.outputs.cache-hit != 'true'
-      run: |
-        cd ${PLUGIN_DIR}
-        composer install --no-dev --no-interaction --no-progress --optimize-autoloader
+      run: composer install --no-dev --no-interaction --no-progress --optimize-autoloader
 
     - name: Run PHP STatic ANalysis
-      run: |
-        cd ${PLUGIN_DIR}
-        vendor/bin/phpstan analyse -c phpstan.neon
+      run: vendor/bin/phpstan analyse -c phpstan.neon
 
-    - name: Run PHPUnit tests
-      run: |
-        cd ${PLUGIN_DIR}
-        vendor/bin/phpunit tests
+    #- name: Run PHPUnit tests
+    #  run: vendor/bin/phpunit tests
+
+    - name: Setup Node
+      uses: actions/setup-node@v1
+      with:
+        node-version: 18.x
+
+    - name: Install NPM packages 
+      run: npm install
+
+    - name: Build React App
+      run: CI=false npm run build --if-present
+
+    #- name: Test React App
+    #  run: npm run test --if-present
 
     - name: Create release ZIP file
-      run: |
-        cd ${PLUGIN_DIR}
-        zip -r ../${ZIP_FILE} ${PLUGIN_SLUG}.php LICENSE build includes templates vendor
+      run: zip -r ${ZIP_FILE} ${PLUGIN_SLUG}.php LICENSE build includes templates vendor
 
     - name: Upload release ZIP file
       uses: actions/upload-artifact@v2

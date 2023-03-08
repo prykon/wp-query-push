@@ -1,17 +1,17 @@
 {
   "name": "wp-query-push",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.3.0",
   "main": "src/index.jsx",
   "scripts": {
     "dev": "vite",
     "build": "wp-scripts build",
     "start": "wp-scripts start",
-    "stan": "vendor/bin/phpstan analyse -c phpstan.neon",
+    "phpstan": "vendor/bin/phpstan analyse -c phpstan.neon",
     "phpcs": "vendor/bin/phpcs --standard=ruleset.xml *.php includes/",
     "phpbf": "vendor/bin/phpcbf --standard=ruleset.xml *.php includes/",
-    "test": "vendor/bin/phpunit tests",
-    "deploy": "zip -r wp-query-push.zip build/ wp-query-push.php includes/ && sudo docker cp wp-query-push.zip 935e3fc09440:/var/www/html/wp-content/plugins/wp-query-push"
+    "phpunit": "vendor/bin/phpunit tests",
+    "deploy": "zip -r wp-query-push.zip build/ wp-query-push.php includes/ && sudo docker cp wp-query-push.zip 5979fcc57e02:/var/www/html/wp-content/plugins/wp-query-push"
   },
   "dependencies": {
     "@sweetalert2/theme-wordpress-admin": "^5.0.15",

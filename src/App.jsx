@@ -14,7 +14,7 @@ if (process.env.NODE_ENV === "development") {
 const App = () => {
   useEffect(() => {
     if (process.env.NODE_ENV === "development") {
-      window.wpApiSettings = { nonce: "123xyz" };
+      window.wpWQP = { nonce: "123xyz" };
     };
     return;
   }, []);

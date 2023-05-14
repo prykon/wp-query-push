@@ -35,14 +35,14 @@ export const fetcher = (resource, init) => fetch(resource, {
   credentials: "include",
   headers: {
     "Accept": "application/json",
-    "X-WP-Nonce": wpApiSettings.nonce
+    "X-WP-Nonce": window.wpWQP.nonce
   }
 }, init).then(res => res?.json());
 
 export const post = async(url, body) => {
   const headers = {
     "Accept": "application/json",
-    "X-WP-Nonce": wpApiSettings.nonce
+    "X-WP-Nonce": window.wpWQP.nonce
   };
   // TODO: overkill?
   if (JSON.parse(JSON.stringify(body))) {
@@ -72,7 +72,8 @@ export const post = async(url, body) => {
 export const put = async(url, body) => {
   const headers = {
     "Content-Type": "application/json",
-    "X-WP-Nonce": wpApiSettings.nonce
+    "X-WP-Nonce": window.wpWQP.nonce
+    //"X-WP-Nonce": wpApiSettings.nonce
   };
   const res = await fetch(url, {
     method: "PUT",
@@ -94,7 +95,7 @@ export const put = async(url, body) => {
 
 export const delet = async(url) => {
   const headers = {
-    "X-WP-Nonce": wpApiSettings.nonce
+    "X-WP-Nonce": window.wpWQP.nonce
   };
   const res = await fetch(url, {
     method: "DELETE",

@@ -393,6 +393,59 @@ class Plugin
         return wp_send_json([ "id" => $wpdb->insert_id ], 200);
     }
 
+    public function handlePutConnection($request)
+    {
+        $id = $request->get_param("id");
+        if ( empty($id) ) {
+            return wp_send_json([ "error" => "Bad Request" ], 400);
+        }
+        // parse and validate request
+        $body = $request->get_body();
+        $data = json_decode($body, true);
+        $name = $data["name"];
+        $type = $data["type"];
+        $requestData = $data["requestData"];
+        $url = $requestData["url"];
+        // validate request
+        if (
+            empty($name) ||
+            empty($type) ||
+            empty($url)
+        ) {
+            return wp_send_json([ "error" => "Bad Request" ], 400);
+        }
+        global $wpdb;
+        $table_name = $wpdb->prefix . $this->TABLE_NAME_CONNECTIONS;
+        $wpdb->update(
+            $table_name,
+            array(
+            "name" => $name,
+            "type" => $type,
+            "config" => json_encode($requestData),
+            ),
+            array( "id" => $id ),
+            array( "%s", "%s", "%s" ),
+            array( "%d" )
+        );
+        return wp_send_json(null, 204);
+    }
+
+    public function handleDeleteConnection($request)
+    {
+        $id = $request->get_param("id");
+        if ( empty($id) ) {
+            return wp_send_json([ "error" => "Bad Request" ], 400);
+        }
+        global $wpdb;
+        $table_name = $wpdb->prefix . $this->TABLE_NAME_CONNECTIONS;
+        $wpdb->delete(
+            $table_name,
+            array( "id" => $id ),
+            array( "%d" )
+        );
+        return wp_send_json(null, 204);
+    }
+
     public function handleSend($request)
     {
         // parse and validate request

@@ -62,7 +62,7 @@ const handleTruncatedCellClick = (value) => {
   });
 };
 
-const Table = ({ columns, data, runtime, actionButtons }) => {
+const Table = ({ columns, data, runtime, actionButtons, rowActionButtons }) => {
   const {
     getTableProps,
     getTableBodyProps,
@@ -135,6 +135,18 @@ const Table = ({ columns, data, runtime, actionButtons }) => {
                     </div>
                   </th>
                 ))}
+                {rowActionButtons && (
+                  <th
+                    scope="col"
+                    className="px-4 py-4 text-xs text-white"
+                  >
+                    <div className="flex justify-center space-x-1">
+                      <span className=" hover:text-gray-300">
+                        actions
+                      </span>
+                    </div>
+                  </th>
+                )}
               </tr>
             ))}
           </thead>
@@ -160,6 +172,13 @@ const Table = ({ columns, data, runtime, actionButtons }) => {
                       </td>
                     );
                   })}
+                  {rowActionButtons && (
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <div className="flex flex-row space-x-2 justify-center">
+                        {rowActionButtons.map((button) => button.render(row))}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               );
             })}

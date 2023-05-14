@@ -4,7 +4,7 @@
  * Plugin Name:       WP Query Push
  * Plugin URI:        https://wpquerypush.com
  * Description:       WP Query Push enables flexible, push-based analytics. Schedule SQL queries to be periodically pushed, or push one-off/adhoc queries, to an external service (ie, HTTP/S).
- * Version:           0.3.2
+ * Version:           0.4.0
  * Requires at least: 5.2
  * Requires PHP:      7.4
  * Author:            zdmc23
@@ -21,7 +21,7 @@ if (!defined('ABSPATH')) {
 }
 
 define('WPQUERYPUSH_NAME', 'WP Query Push');
-define('WPQUERYPUSH_VERSION', '0.3.0');
+define('WPQUERYPUSH_VERSION', '0.4.0');
 define('WPQUERYPUSH_SETUP', true);
 define('WPQUERYPUSH_PLUGIN_BASE', plugin_basename(__FILE__));
 define('WPQUERYPUSH_PLUGIN_DIR', plugin_dir_path(__FILE__));
@@ -92,6 +92,24 @@ function register_rest_routes()
     'methods' => 'POST',
     'callback' => function ($request) {
         return \WPQueryPush\Plugin::instance()->handlePostConnection($request);
+    },
+    'permission_callback' => function () {
+        return current_user_can('manage_options');
+    }
+    ));
+    register_rest_route($base_route, '/connections/(?P<id>\d+)', array(
+    'methods' => 'PUT',
+    'callback' => function ($request) {
+        return \WPQueryPush\Plugin::instance()->handlePutConnection($request);
+    },
+    'permission_callback' => function () {
+        return current_user_can('manage_options');
+    }
+    ));
+    register_rest_route($base_route, '/connections/(?P<id>\d+)', array(
+    'methods' => 'DELETE',
+    'callback' => function ($request) {
+        return \WPQueryPush\Plugin::instance()->handleDeleteConnection($request);
     },
     'permission_callback' => function () {
         return current_user_can('manage_options');
@@ -220,12 +238,12 @@ add_action('plugins_loaded', function () {
         $myUpdateChecker = PucFactory::buildUpdateChecker(
             'https://raw.githubusercontent.com/zdmc23/wp-query-push/main/plugin.json',
             __FILE__,
-            'wp-query-push' 
+            'wp-query-push'
         );
     }
 });
 
-function auto_update_specific_plugins ( $update, $item )
+function auto_update_specific_plugins($update, $item)
 {
     // enable auto-update for *THIS* plugin only
     if ( $item->slug == 'wp-query-push' ) {
@@ -234,4 +252,4 @@ function auto_update_specific_plugins ( $update, $item )
         return $update;
     }
 }
-add_filter( 'auto_update_plugin', 'auto_update_specific_plugins', 10, 2 );
+add_filter('auto_update_plugin', 'auto_update_specific_plugins', 10, 2);

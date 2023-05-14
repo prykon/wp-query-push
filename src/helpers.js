@@ -37,35 +37,80 @@ export const fetcher = (resource, init) => fetch(resource, {
     "Accept": "application/json",
     "X-WP-Nonce": wpApiSettings.nonce
   }
-}, init).then(res => res.json());
+}, init).then(res => res?.json());
 
 export const post = async(url, body) => {
-      const headers = {
-        "Accept": "application/json",
-        "X-WP-Nonce": wpApiSettings.nonce
-      };
-      // TODO: overkill?
-      if (JSON.parse(JSON.stringify(body))) {
-        headers["Content-Type"] = "application/json";
-      };
-      const res = await fetch(url, {
-        method: "POST",
-        credentials: "include",
-        headers,
-        body
-      });
-      if (res.status === 200) {
-        const data = await res.json();
-        return {
-          data,
-          error: null
-        };
-      };
-      // TODO
-      return {
-        data: null,
-        error: "Server Error"
-      };
+  const headers = {
+    "Accept": "application/json",
+    "X-WP-Nonce": wpApiSettings.nonce
+  };
+  // TODO: overkill?
+  if (JSON.parse(JSON.stringify(body))) {
+    headers["Content-Type"] = "application/json";
+  };
+  const res = await fetch(url, {
+    method: "POST",
+    credentials: "include",
+    headers,
+    body
+  });
+  // HTTP 200 bc we are at least returning the new ID
+  if (res.status === 200) {
+    const data = await res.json();
+    return {
+      data,
+      error: null
+    };
+  };
+  // TODO
+  return {
+    data: null,
+    error: "Server Error"
+  };
+};
+
+export const put = async(url, body) => {
+  const headers = {
+    "Content-Type": "application/json",
+    "X-WP-Nonce": wpApiSettings.nonce
+  };
+  const res = await fetch(url, {
+    method: "PUT",
+    credentials: "include",
+    headers,
+    body
+  });
+  if (res.status === 204) {
+    return {
+      data: null,
+      error: null
+    };
+  };
+  return {
+    data: null,
+    error: "Server Error"
+  };
+};
+
+export const delet = async(url) => {
+  const headers = {
+    "X-WP-Nonce": wpApiSettings.nonce
+  };
+  const res = await fetch(url, {
+    method: "DELETE",
+    credentials: "include",
+    headers,
+  });
+  if (res.status === 204) {
+    return {
+      data: null,
+      error: null
+    };
+  };
+  return {
+    data: null,
+    error: "Server Error"
+  };
 };
 
 export const toastErrors = (errors) => {

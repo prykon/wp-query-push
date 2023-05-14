@@ -1,4 +1,4 @@
-import { post } from "@/helpers";
+import { post, put, delet } from "@/helpers";
 
 export const runQuery = async({ query }) => {
   const url = "/wp-json/wpquerypush/v1/query";
@@ -43,6 +43,43 @@ export const createConnection = async(data) => {
   const body = JSON.stringify(mappedData);
   try {
     return post(url, body);
+  } catch(error) {
+    console.error(error);
+    return {
+      data: null,
+      error
+    };
+  };
+};
+
+export const updateConnection = async({ id, data }) => {
+  const mappedHeaders = data?.headers?.map(header => ({ [header.key]: header.value }));
+  const mappedData = {
+    name: data.name,
+    type: data.type,
+    requestData: {
+      url: data.url,
+      //method: data.method,
+      headers: mappedHeaders
+    }
+  };
+  const url = `/wp-json/wpquerypush/v1/connections/${id}`;
+  const body = JSON.stringify(mappedData);
+  try {
+    return put(url, body);
+  } catch(error) {
+    console.error(error);
+    return {
+      data: null,
+      error
+    };
+  };
+};
+
+export const deleteConnection = async(id) => {
+  const url = `/wp-json/wpquerypush/v1/connections/${id}`;
+  try {
+    return delet(url);
   } catch(error) {
     console.error(error);
     return {

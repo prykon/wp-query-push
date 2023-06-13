@@ -204,18 +204,30 @@ class Plugin
     private function createTableConnections()
     {
         global $wpdb;
-        $table_name = $wpdb->prefix . $this->TABLE_NAME_CONNECTIONS;
-        $wpdb_collate = $wpdb->collate;
-        $sql = "CREATE TABLE {$table_name} (
-			id INT NOT NULL AUTO_INCREMENT,
-			name VARCHAR(255),
-            type VARCHAR(100),
-            config JSON,
-			PRIMARY KEY (id)
-		)
-		COLLATE {$wpdb_collate}";
+            $table_name = $wpdb->prefix . $this->TABLE_NAME_CONNECTIONS;
+            $wpdb_collate = $wpdb->collate;
+            $sql = "CREATE TABLE {$table_name} (
+                id INT NOT NULL AUTO_INCREMENT,
+                name VARCHAR(255),
+                type VARCHAR(100),
+                config JSON,
+                PRIMARY KEY (id)
+            )
+            COLLATE {$wpdb_collate}";
 
-        $this->createTable($sql);
+            if (is_multisite()) {
+                $blog_ids = $wpdb->get_col("SELECT blog_id FROM {$wpdb->blogs}");
+
+                foreach ($blog_ids as $blog_id) {
+                    switch_to_blog($blog_id);
+
+                    dbDelta($sql);
+
+                    restore_current_blog();
+                }
+            } else {
+                dbDelta($sql);
+            }
     }
 
     private function dropTable($table_name)

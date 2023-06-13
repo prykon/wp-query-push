@@ -203,6 +203,8 @@ class Plugin
 
     private function createTableConnections()
     {
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        
         global $wpdb;
             $table_name = $wpdb->prefix . $this->TABLE_NAME_CONNECTIONS;
             $wpdb_collate = $wpdb->collate;

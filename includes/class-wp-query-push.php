@@ -118,39 +118,62 @@ class Plugin
         return $response;
     }
 
-    public function activate()
+    public function activate_plugin()
     {
-        // create any tables
+        if ( is_multisite() ) {
+            error_log( 'multisite activate detected' );
+            $blog_ids = $this->get_blog_ids();
+            foreach ( $blog_ids as $key => $blog_id ) {
+                switch_to_blog( $blog_id );
+                $this->createTableConnections();
+                $this->createTableLogs();
+                update_option( 'wpquerypush_db_version', '0.1.0');
+                restore_current_blog();
+            }
+            return;
+        }
+        error_log( 'singlesite activate detected' );
         $this->createTableConnections();
         $this->createTableLogs();
-        // update any options
-        update_option("wpquerypush_db_version", "0.1.0");
+        update_option( 'wpquerypush_db_version', '0.1.0');
+        return;
     }
 
-    public function deactivate()
-    {
-        // unschedule any cronjobs
-        // TODO: loop?
-        $timestamp = wp_next_scheduled('wpquerypush_cron_hook');
-        wp_unschedule_event($timestamp, 'wpquerypush_cron_hook');
-        // drop any tables
-        // TODO: move to uninstall
-        $this->dropTableConnections();
-        $this->dropTableLogs();
-        // remove any cronjobs
-        /** @phpstan-ignore-next-line */
-        remove_action('wpquerypush_cron_hook', 'wpquerypush_cron_exec', 10, 2);
+    public function get_blog_ids() {
+        global $wpdb;
+        $blog_ids = $wpdb->get_col( "SELECT blog_id FROM {$wpdb->blogs}; " );
+        return $blog_ids;
+    }
+
+    public function deactivate_plugin() {
+    }
+
+    public function deleteCronJobs() {
+        $timestamp = wp_next_scheduled( 'wpquerypush_cron_hook' );
+        wp_unschedule_event( $timestamp, 'wpquerypush_cron_hook' );
+        remove_action( 'wpquerypush_cron_hook', 'wpquerypush_cron_exec', 10, 2 );
     }
 
     public function uninstall()
     {
-        // remove any cronjobs
-        //remove_action( 'wpquerypush_cron_hook', 'NEEDS TO BE SAME', 10 );
-        // drop any tables
+        if ( is_multisite() ) {
+            $blog_ids = $this->get_blog_ids();
+            foreach( $blog_ids as $blog_id ) {
+                switch_to_blog( $blog_id );
+                $this->dropTableConnections();
+                $this->dropTableLogs();
+                $this->deleteCronJobs();
+                delete_option( 'wpquerypush_db_version' );
+                restore_current_blog( $blog_id );
+            }
+            return;
+        }
+        error_log( 'singlesite uninstall detected' );
         $this->dropTableConnections();
         $this->dropTableLogs();
-        // delete any options
-        delete_option("wpquerypush_db_version");
+        $this->deleteCronJobs();
+        delete_option( 'wpquerypush_db_version' );
+        return;
     }
 
     private function createTable($sql)
@@ -176,7 +199,6 @@ class Plugin
 			PRIMARY KEY (id)
 		)
 		COLLATE {$wpdb_collate}";
-
         $this->createTable($sql);
     }
 
@@ -204,27 +226,19 @@ class Plugin
     private function createTableConnections()
     {
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-            if (is_multisite()) {
-                $blog_ids = $wpdb->get_col("SELECT blog_id FROM {$wpdb->blogs}");
-                foreach ($blog_ids as $blog_id) {
-                    switch_to_blog($blog_id);
-                    global $wpdb;
-                    $table_name = $wpdb->prefix . $this->TABLE_NAME_CONNECTIONS;
-                    $wpdb_collate = $wpdb->collate;
-                    $sql = "CREATE TABLE {$table_name} (
-                        id INT NOT NULL AUTO_INCREMENT,
-                        name VARCHAR(255),
-                        type VARCHAR(100),
-                        config JSON,
-                        PRIMARY KEY (id)
-                    )
-                    COLLATE {$wpdb_collate}";
-                    dbDelta($sql);
-                    restore_current_blog();
-                }
-            } else {
-                dbDelta($sql);
-            }
+        global $wpdb;
+        error_log($wpdb->prefix);
+        $table_name = $wpdb->prefix . $this->TABLE_NAME_CONNECTIONS;
+        $wpdb_collate = $wpdb->collate;
+        $sql = "CREATE TABLE {$table_name} (
+            id INT NOT NULL AUTO_INCREMENT,
+            name VARCHAR(255),
+            type VARCHAR(100),
+            config JSON,
+            PRIMARY KEY (id)
+        )
+        COLLATE {$wpdb_collate}";
+        dbDelta($sql);
     }
 
     private function dropTable($table_name)

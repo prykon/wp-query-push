@@ -37,13 +37,13 @@ use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
 function wpquerypush_activate()
 {
-    \WPQueryPush\Plugin::instance()->activate();
+    \WPQueryPush\Plugin::instance()->activate_plugin();
 }
 register_activation_hook(__FILE__, 'wpquerypush_activate');
 
 function wpquerypush_deactivate()
 {
-    \WPQueryPush\Plugin::instance()->deactivate();
+    \WPQueryPush\Plugin::instance()->deactivate_plugin();
 }
 register_deactivation_hook(__FILE__, 'wpquerypush_deactivate');
 

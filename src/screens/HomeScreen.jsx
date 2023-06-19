@@ -5,7 +5,7 @@ import Changelog from "@/components/Changelog";
 const HomeScreen = () => {
   const changelogData = [
     {
-      version: "0.5.0",
+      version: "0.5.1",
       changes: [
         "Multisite Support"
       ]

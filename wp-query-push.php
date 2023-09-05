@@ -211,7 +211,7 @@ function enqueue_admin_scripts()
         sanitize_text_field( wp_unslash( $_GET['page'] ) ) !== 'wpquerypush'
     ) {
     */
-    if ( is_admin() ) {
+    if ( is_admin() && ( isset( $_GET['page'] ) && $_GET['page'] === 'wpquerypush' ) ) {
         $metadata = require_once plugin_dir_path(__FILE__) . 'build/index.asset.php';
         wp_enqueue_script(
             'wpquerypush',

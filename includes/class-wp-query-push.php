@@ -188,7 +188,7 @@ class Plugin
         $table_name = $wpdb->prefix . $this->TABLE_NAME_LOGS;
         $wpdb_collate = $wpdb->collate;
         $sql = "CREATE TABLE {$table_name} (
-			id INT NOT NULL AUTO_INCREMENT,
+	    id INT NOT NULL AUTO_INCREMENT,
             ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             user TEXT,
             connection_id INT,
@@ -196,9 +196,9 @@ class Plugin
             request LONGTEXT,
             response LONGTEXT,
             status VARCHAR(3),
-			PRIMARY KEY (id)
-		)
-		COLLATE {$wpdb_collate}";
+	    PRIMARY KEY (id)
+	)
+	COLLATE {$wpdb_collate}";
         $this->createTable($sql);
     }
 
@@ -225,9 +225,7 @@ class Plugin
 
     private function createTableConnections()
     {
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         global $wpdb;
-        error_log($wpdb->prefix);
         $table_name = $wpdb->prefix . $this->TABLE_NAME_CONNECTIONS;
         $wpdb_collate = $wpdb->collate;
         $sql = "CREATE TABLE {$table_name} (
@@ -238,7 +236,7 @@ class Plugin
             PRIMARY KEY (id)
         )
         COLLATE {$wpdb_collate}";
-        dbDelta($sql);
+        $this->createTable($sql);
     }
 
     private function dropTable($table_name)

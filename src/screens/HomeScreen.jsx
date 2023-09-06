@@ -5,6 +5,12 @@ import Changelog from "@/components/Changelog";
 const HomeScreen = () => {
   const changelogData = [
     {
+      version: "0.5.1",
+      changes: [
+        "Multisite Support"
+      ]
+    },
+    {
       version: "0.4.1",
       changes: [
         "Editable Connections",

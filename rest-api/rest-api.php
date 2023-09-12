@@ -2,23 +2,22 @@
 if ( !defined( 'ABSPATH' ) ) { exit; } // Exit if accessed directly.
 
 class WP_Query_Push_Endpoints
-{ 
+{
     public static function can_access_api( WP_REST_Request $request ) {
         if ( is_user_logged_in() ) {
             return current_user_can( 'manage_options' );
         }
 
-        $api_key = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        error_log( print_r( $request, true ) );
-        if (isset( $request['api-key'] ) && $request['api-key'] === $api_key ) {
+        $api_key = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'; // @todo: softcode this
+        if (isset( $request['x-api-key'] ) && $request['x-api-key'] === $api_key ) {
             return true;
         }
 
-        return new WP_Error( 'rest_forbidden', 'Invalid API key.', [ 'status' => 401 ] );
+        return new WP_Error( 'rest_forbidden', 'Unauthorized', [ 'status' => 401 ] );
      }
 
     public function add_api_routes() {
-        $namespace = 'wp_query_push/v1';
+        $namespace = 'wp-query-push/v1';
 
         register_rest_route(
             $namespace, '/query', [
@@ -32,7 +31,9 @@ class WP_Query_Push_Endpoints
             $namespace, '/send', [
                 'methods' => 'POST',
                 'callback' => [ $this , 'handle_send' ],
-                'permission_callback' => [ $this, 'can_access_api' ],
+                'permission_callback' => function() {
+                    return current_user_can( 'manage_options' );
+                },
             ]
         );
 
@@ -40,7 +41,9 @@ class WP_Query_Push_Endpoints
             $namespace, '/connections', [
                 'methods' => 'POST',
                 'callback' => [ $this , 'handle_post_connection' ],
-                'permission_callback' => [ $this, 'can_access_api' ],
+                'permission_callback' => function() {
+                    return current_user_can( 'manage_options' );
+                },
             ]
         );
 
@@ -123,7 +126,6 @@ class WP_Query_Push_Endpoints
                 },
             ]
         );
-    }
 
     private function run_query( $query ) {
         global $wpdb;
@@ -407,6 +409,7 @@ class WP_Query_Push_Endpoints
         }
         return self::$_instance;
     } // End instance()
+
     public function __construct() {
         add_action( 'rest_api_init', [ $this, 'add_api_routes' ] );
     }

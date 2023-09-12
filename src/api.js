@@ -1,7 +1,7 @@
 import { post, put, delet } from "@/helpers";
 
 export const runQuery = async({ query }) => {
-  const url = "/wp-json/wp_query_push/v1/query";
+  const url = "/wp-json/wp-query-push/v1/query";
   const body = JSON.stringify({ statement: query });
   try {
     return post(url, body);
@@ -15,7 +15,7 @@ export const runQuery = async({ query }) => {
 };
 
 export const scheduleTask = async(data) => {
-  const url = "/wp-json/wp_query_push/v1/schedule-task";
+  const url = "/wp-json/wp-query-push/v1/schedule-task";
   const body = JSON.stringify(data);
   try {
     return post(url, body);
@@ -39,7 +39,7 @@ export const createConnection = async(data) => {
       headers: mappedHeaders
     }
   };
-  const url = "/wp-json/wp_query_push/v1/connections";
+  const url = "/wp-json/wp-query-push/v1/connections";
   const body = JSON.stringify(mappedData);
   try {
     return post(url, body);
@@ -63,7 +63,7 @@ export const updateConnection = async({ id, data }) => {
       headers: mappedHeaders
     }
   };
-  const url = `/wp-json/wp_query_push/v1/connections/${id}`;
+  const url = `/wp-json/wp-query-push/v1/connections/${id}`;
   const body = JSON.stringify(mappedData);
   try {
     return put(url, body);
@@ -77,7 +77,7 @@ export const updateConnection = async({ id, data }) => {
 };
 
 export const deleteConnection = async(id) => {
-  const url = `/wp-json/wp_query_push/v1/connections/${id}`;
+  const url = `/wp-json/wp-query-push/v1/connections/${id}`;
   try {
     return delet(url);
   } catch(error) {
@@ -90,7 +90,7 @@ export const deleteConnection = async(id) => {
 };
 
 export const createSchedule = async(data) => {
-  const url = "/wp-json/wp_query_push/v1/schedules";
+  const url = "/wp-json/wp-query-push/v1/schedules";
   const body = JSON.stringify(data);
   try {
     return post(url, body);
@@ -104,7 +104,7 @@ export const createSchedule = async(data) => {
 };
 
 export const send = async(data) => {
-  const url = "/wp-json/wp_query_push/v1/send";
+  const url = "/wp-json/wp-query-push/v1/send";
   const body = JSON.stringify(data);
   try {
     return post(url, body);

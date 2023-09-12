@@ -1,7 +1,5 @@
 <?php
 
-
-
 use \Exception as Exception;
 use \DateTime as DateTime;
 
@@ -41,11 +39,11 @@ class WP_Query_Push
     public function wp_query_push_add_cron_interval($schedules) {
         $schedules['five_seconds'] = array(
         'interval' => 5,
-        'display'  => esc_html__('Every Five Seconds'), );
+        'display'  => esc_html__( 'Every Five Seconds' ), );
         return $schedules;
     }
 
-    private function get_connection($connection_id) {
+    private function get_connection( $connection_id ) {
         global $wpdb;
         $table_name = $wpdb->prefix . $this->TABLE_NAME_CONNECTIONS;
         $sql = "SELECT * FROM $table_name WHERE id = $connection_id";
@@ -53,7 +51,7 @@ class WP_Query_Push
         return $connection;
     }
 
-    private function insert_log($connection_id, $query, $response) {
+    private function insert_log( $connection_id, $query, $response ) {
         global $wpdb;
         $current_user_id = get_current_user_id();
         $table_name = $wpdb->prefix . $this->TABLE_NAME_LOGS;
@@ -71,7 +69,7 @@ class WP_Query_Push
         //return wp_send_json([ "id" => $wpdb->insert_id ], 200);
     }
 
-    public function process_task($connection_id, $query) {
+    public function process_task( $connection_id, $query ) {
         $connection = $this->get_connection($connection_id);
         $requestData = json_decode($connection->config);
         // prep the request
@@ -85,7 +83,7 @@ class WP_Query_Push
             }
         }
 
-        $rs = $this->run_query($query);
+        $rs = $this->run_query( $query );
         $data = json_encode($rs);
         // configure curl
         $ch = curl_init($url);
@@ -210,7 +208,7 @@ class WP_Query_Push
 
     private function drop_table_logs() {
         global $wpdb;
-        $this->drop_table($wpdb->prefix . $this->TABLE_NAME_LOGS);
+        $this->drop_table( $wpdb->prefix . $this->TABLE_NAME_LOGS );
     }
 
     private function drop_table_connections() {

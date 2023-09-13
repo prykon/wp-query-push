@@ -46,8 +46,11 @@ class WP_Query_Push
     private function get_connection( $connection_id ) {
         global $wpdb;
         $table_name = $wpdb->prefix . $this->TABLE_NAME_CONNECTIONS;
-        $sql = "SELECT * FROM $table_name WHERE id = $connection_id";
-        $connection = $wpdb->get_row($sql);
+        $connection = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT * FROM %s WHERE id = %d", $table_name, $connection_id
+            )
+        );
         return $connection;
     }
 
@@ -58,13 +61,13 @@ class WP_Query_Push
         $wpdb->insert(
             $table_name,
             array(
-                "query" => $query,
-                "connection_id" => $connection_id,
-                "user" => $current_user_id,
-                "response" => $response['responseData'],
-                "status" => $response['status']
+                'query' => $query,
+                'connection_id' => $connection_id,
+                'user' => $current_user_id,
+                'response' => $response['responseData'],
+                'status' => $response['status']
             ),
-            array( "%s", "%d", "%s", "%s", "%s")
+            array( '%s', '%d', '%s', '%s', '%s' )
         );
         //return wp_send_json([ "id" => $wpdb->insert_id ], 200);
     }
@@ -99,12 +102,12 @@ class WP_Query_Push
         curl_close($ch);
 
         $response = array(
-            "responseData" => $responseData,
-            "errors" => $errors,
-            "status" => $status,
+            'responseData' => $responseData,
+            'errors' => $errors,
+            'status' => $status,
         );
 
-        $log_id = $this->insert_log($connection_id, $query, $response);
+        $log_id = $this->insert_log( $connection_id, $query, $response );
         return $response;
     }
 
@@ -128,7 +131,11 @@ class WP_Query_Push
 
     public function get_blog_ids() {
         global $wpdb;
-        $blog_ids = $wpdb->get_col( "SELECT blog_id FROM {$wpdb->blogs}; " );
+        $blog_ids = $wpdb->get_col(
+            $wpdb->prepare(
+                "SELECT blog_id FROM %s;", $wpdb->blogs
+            )
+        );
         return $blog_ids;
     }
 
@@ -171,7 +178,7 @@ class WP_Query_Push
         $table_name = $wpdb->prefix . $this->TABLE_NAME_LOGS;
         $wpdb_collate = $wpdb->collate;
         $sql = "CREATE TABLE {$table_name} (
-	    id INT NOT NULL AUTO_INCREMENT,
+            id INT NOT NULL AUTO_INCREMENT,
             ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             user TEXT,
             connection_id INT,
@@ -179,10 +186,10 @@ class WP_Query_Push
             request LONGTEXT,
             response LONGTEXT,
             status VARCHAR(3),
-	    PRIMARY KEY (id)
-	)
-	COLLATE {$wpdb_collate}";
-        $this->create_table($sql);
+            PRIMARY KEY (id)
+        )
+        COLLATE {$wpdb_collate}";
+        $this->create_table( $sql );
     }
 
     private function create_table_connections() {
@@ -197,22 +204,22 @@ class WP_Query_Push
             PRIMARY KEY (id)
         )
         COLLATE {$wpdb_collate}";
-        $this->create_table($sql);
-    }
-
-    private function drop_table( $table_name ) {
-        global $wpdb;
-        $sql = "DROP TABLE IF EXISTS $table_name;";
-        $wpdb->query($sql);
+        $this->create_table( $sql );
     }
 
     private function drop_table_logs() {
         global $wpdb;
-        $this->drop_table( $wpdb->prefix . $this->TABLE_NAME_LOGS );
+        $table_logs_name = $wpdb->prefix . $this->TABLE_NAME_LOGS;
+        $wpdb->query(
+            $wpdb->prepare( "DROP TABLE IF EXISTS %s;", $table_logs_name )
+        );
     }
 
     private function drop_table_connections() {
         global $wpdb;
-        $this->drop_table($wpdb->prefix . $this->TABLE_NAME_CONNECTIONS);
+        $table_connections_name = $wpdb->prefix . $this->TABLE_NAME_CONNECTIONS;
+        $wpdb->query(
+            $wpdb->prepare( "DROP TABLE IF EXISTS %s;", $table_connections_name )
+        );
     }
 }

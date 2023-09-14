@@ -3,19 +3,6 @@ if ( !defined( 'ABSPATH' ) ) { exit; } // Exit if accessed directly.
 
 class WP_Query_Push_Endpoints
 {
-    public static function can_access_api( WP_REST_Request $request ) {
-        if ( is_user_logged_in() ) {
-            return current_user_can( 'manage_options' );
-        }
-
-        $api_key = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'; // @todo: softcode this
-        if (isset( $request['x-api-key'] ) && $request['x-api-key'] === $api_key ) {
-            return true;
-        }
-
-        return new WP_Error( 'rest_forbidden', 'Unauthorized', [ 'status' => 401 ] );
-     }
-
     public function add_api_routes() {
         $namespace = 'wp-query-push/v1';
 
@@ -23,7 +10,9 @@ class WP_Query_Push_Endpoints
             $namespace, '/query', [
                 'methods' => 'POST',
                 'callback' => [ $this , 'handle_query' ],
-                'permission_callback' => [ $this, 'can_access_api' ],
+                'permission_callback' => function() {
+                    return current_user_can( 'manage_options' );
+                },
             ]
         );
 
@@ -126,8 +115,9 @@ class WP_Query_Push_Endpoints
                 },
             ]
         );
+    }
 
-    private function run_query( $query ) {
+    public static function run_query( $query ) {
         global $wpdb;
         return $wpdb->get_results( $query );
     }
@@ -144,19 +134,19 @@ class WP_Query_Push_Endpoints
     }
 
     public function handle_get_logs( WP_REST_Request $request ) {
-        return $this->select_star( $this->TABLE_NAME_LOGS );
+        return $this->select_star( WP_Query_Push::instance()->TABLE_NAME_LOGS );
     }
 
     public function handle_get_connections( WP_REST_Request $request ) {
-        return $this->select_star( $this->TABLE_NAME_CONNECTIONS );
+        return $this->select_star( WP_Query_Push::instance()->TABLE_NAME_CONNECTIONS );
     }
 
     public function handle_get_scheduled_tasks( WP_REST_Request $request ) {
-        return $this->select_star( $this->TABLE_NAME_SCHEDULED_TASKS );
+        return $this->select_star( WP_Query_Push::instance()->TABLE_NAME_SCHEDULED_TASKS );
     }
 
     public function handle_get_queries( WP_REST_Request $request ) {
-        return $this->select_star( $this->TABLE_NAME_QUERIES );
+        return $this->select_star( WP_Query_Push::instance()->TABLE_NAME_QUERIES );
     }
 
     public function handle_show_tables( WP_REST_Request $request ) {
@@ -174,7 +164,7 @@ class WP_Query_Push_Endpoints
         /*
         {
             "query": "SELECT * FROM wp_options;",
-            "start_dt": "2023-03-04T20:28",
+            "start_datetime": "2023-03-04T20:28",
             "interval": "daily",
             "connection": "2"
         }
@@ -183,7 +173,7 @@ class WP_Query_Push_Endpoints
         $body = $request->get_body();
         $data = json_decode($body, true);
         $query = $data['query'];
-        $start_ts = $data['start_ts'];
+        $start_datetime = $data['start_datetime'];
         $interval = $data['interval'];
         $connection_id = $data['connection'];
         // validate request
@@ -194,10 +184,10 @@ class WP_Query_Push_Endpoints
         ) {
             return wp_send_json( [ 'error' => 'Bad Request' ], 400 );
         }
-        if ( empty($start_ts) ) {
-            $start_ts = time();
+        if ( empty($start_datetime) ) {
+            $start_datetime = time();
         } else {
-            $start_ts = strtotime($start_ts);
+            $start_datetime = strtotime($start_datetime);
         }
         /*
         // insert into db
@@ -207,7 +197,7 @@ class WP_Query_Push_Endpoints
             $table_name,
             array(
                 "name" => $name,
-                "start_ts" => $start_ts,
+                "start_datetime" => $start_datetime,
                 "interval_key" => $interval,
                 "connection_id" => $connection_id,
                 "query" => $query
@@ -217,7 +207,7 @@ class WP_Query_Push_Endpoints
         $id = $wpdb->insert_id;
         */
         // schedule cronjob
-        wp_schedule_event( $start_ts, $interval, 'wpquerypush_cron_hook', [ $connection_id, $query ] );
+        wp_schedule_event( $start_datetime, $interval, 'wpquerypush_cron_hook', [ $connection_id, $query ] );
         // return response
         return wp_send_json( [], 200 );
     }
@@ -255,7 +245,7 @@ class WP_Query_Push_Endpoints
         }
 
         global $wpdb;
-        $table_name = $wpdb->prefix . $this->TABLE_NAME_CONNECTIONS;
+        $table_name = $wpdb->prefix . WP_Query_Push::instance()->TABLE_NAME_CONNECTIONS;
         $wpdb->insert(
             $table_name,
             [
@@ -285,7 +275,7 @@ class WP_Query_Push_Endpoints
             return wp_send_json( [ 'error' => 'Bad Request' ], 400 );
         }
         global $wpdb;
-        $table_name = $wpdb->prefix . $this->TABLE_NAME_CONNECTIONS;
+        $table_name = $wpdb->prefix . WP_Query_Push::instance()->TABLE_NAME_CONNECTIONS;
         $wpdb->update(
             $table_name,
             [
@@ -306,7 +296,7 @@ class WP_Query_Push_Endpoints
             return wp_send_json( [ 'error' => 'Bad Request' ], 400 );
         }
         global $wpdb;
-        $table_name = $wpdb->prefix . $this->TABLE_NAME_CONNECTIONS;
+        $table_name = $wpdb->prefix . WP_Query_Push::instance()->TABLE_NAME_CONNECTIONS;
         $wpdb->delete(
             $table_name,
             [ 'id' => $id ],
@@ -322,17 +312,17 @@ class WP_Query_Push_Endpoints
         $query = $data['query'];
         $connection_id = $data['connection'];
         // validate request
-        if ( empty( $query ) || empty($connection_id) ) {
+        if ( empty( $query ) || empty( $connection_id ) ) {
             return wp_send_json([ "error" => "Bad Request" ], 400);
         }
         // process task (manual)
-        $res = $this->process_task($connection_id, $query);
-        $responseData = $res['responseData'];
+        $res = WP_Query_Push::instance()->process_task($connection_id, $query);
+        $response_data = $res['response_data'];
         $errors = $res['errors'];
         $status = $res['status'];
         /*
-        if ( empty ( $responseData ) ) {
-            $responseData = $errors;
+        if ( empty ( $response_data ) ) {
+            $response_data = $errors;
         }
         */
         return wp_send_json( [], 200 );
@@ -344,11 +334,11 @@ class WP_Query_Push_Endpoints
         $interval = 5;
         $display = 'Every Five Seconds';
         $schedules = wp_get_schedules();
-        $schedules[$key] = [
-        'interval' => $interval,
-        'display'  => esc_html__( $display )
-        ];
-        return wp_send_json( [ 'id' => $key ], 200 );
+        $schedules[$key] = array(
+            'interval' => $interval,
+            'display'  => $display
+        );
+        return wp_send_json( array( 'id' => $key ), 200 );
     }
 
     public function parse_request_query( WP_REST_Request $request ) {
@@ -366,7 +356,7 @@ class WP_Query_Push_Endpoints
             }
 
             global $wpdb;
-            $table_name = $wpdb->prefix . $this->TABLE_NAME_QUERIES;
+            $table_name = $wpdb->prefix . WP_Query_Push::instance()->TABLE_NAME_QUERIES;
             $wpdb->insert(
                 $table_name,
                 [ 'query' => $query ],
@@ -378,24 +368,11 @@ class WP_Query_Push_Endpoints
     }
 
     public function handle_query( WP_REST_Request $request ) {
-        // return $this->run_query_json("SELECT * FROM wp_dt_activity_log");
         try {
-            $query = $this->parse_request_query($request);
+            $query = $this->parse_request_query( $request );
             if ( empty( $query ) ) {
                 return wp_send_json( [ 'error' => 'Bad Request' ], 400 );
             }
-            /*
-            // parse and validate query (only SELECTs permitted)
-            $parser = new \PhpMyAdmin\SqlParser\Parser( $query );
-            foreach ( $parser->statements as $statement ) {
-                $flags = \PhpMyAdmin\SqlParser\Utils\Query::getFlags($statement);
-                $querytype = $flags["querytype"];
-                if ($querytype != "SELECT" ) {
-                    return wp_send_json([ "error" => "Invalid Query (only SELECT statements are permitted)" ], 400);
-                }
-            }
-            */
-            // return query results
             return $this->run_query_json( $query );
         } catch ( Exception $e ) {
             return wp_send_json( [ 'error' => 'Server Error' ], 500 );

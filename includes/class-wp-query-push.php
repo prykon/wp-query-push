@@ -29,14 +29,14 @@ class WP_Query_Push
         */
     }
 
-    private $TABLE_NAME_QUERIES = "wpquerypush_queries";
-    private $TABLE_NAME_SCHEDULED_TASKS = "wpquerypush_scheduled_tasks";
-    private $TABLE_NAME_CONNECTIONS = "wpquerypush_connections";
-    private $TABLE_NAME_LOGS = "wpquerypush_logs";
+    public $TABLE_NAME_QUERIES = "wpquerypush_queries";
+    public $TABLE_NAME_SCHEDULED_TASKS = "wpquerypush_scheduled_tasks";
+    public $TABLE_NAME_CONNECTIONS = "wpquerypush_connections";
+    public $TABLE_NAME_LOGS = "wpquerypush_logs";
 
     //private $CRON_HOOK_NAME = "wpquerypush_cron_exec";
 
-    public function wp_query_push_add_cron_interval($schedules) {
+    public function wp_query_push_add_cron_interval( $schedules ) {
         $schedules['five_seconds'] = array(
         'interval' => 5,
         'display'  => esc_html__( 'Every Five Seconds' ), );
@@ -45,11 +45,9 @@ class WP_Query_Push
 
     private function get_connection( $connection_id ) {
         global $wpdb;
-        $table_name = $wpdb->prefix . $this->TABLE_NAME_CONNECTIONS;
+        $table_name =  $wpdb->prefix . $this->TABLE_NAME_CONNECTIONS;
         $connection = $wpdb->get_row(
-            $wpdb->prepare(
-                "SELECT * FROM %s WHERE id = %d", $table_name, $connection_id
-            )
+            $wpdb->prepare( "SELECT * FROM {$table_name} WHERE id = %d", $connection_id )
         );
         return $connection;
     }
@@ -64,45 +62,46 @@ class WP_Query_Push
                 'query' => $query,
                 'connection_id' => $connection_id,
                 'user' => $current_user_id,
-                'response' => $response['responseData'],
+                'response' => $response['response_data'],
                 'status' => $response['status']
             ),
             array( '%s', '%d', '%s', '%s', '%s' )
         );
-        //return wp_send_json([ "id" => $wpdb->insert_id ], 200);
+        return true;
     }
 
     public function process_task( $connection_id, $query ) {
-        $connection = $this->get_connection($connection_id);
-        $requestData = json_decode($connection->config);
+        global $wpdb;
+        $connection = $this->get_connection( $connection_id );
+        $requestData = json_decode( $connection->config );
         // prep the request
         $url = $requestData->url;
         $headers = $requestData->headers;
         // map headers into curl format
         $mapped_headers = [];
-        foreach ($headers as $object) {
-            foreach ($object as $key => $value) {
+        foreach ( $headers as $object ) {
+            foreach ( $object as $key => $value ) {
                 $mapped_headers[] = "$key: $value";
             }
         }
 
-        $rs = $this->run_query( $query );
-        $data = json_encode($rs);
+        $results =  $wpdb->get_results( $query );
+        $data = json_encode( $results );
         // configure curl
-        $ch = curl_init($url);
-        //$ts = date_format(date_create('@'. time()), 'c');
-        date_default_timezone_set('UTC');
-        $ts = date(DateTime::ATOM);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $mapped_headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $responseData = curl_exec($ch);
-        $errors = curl_error($ch);
-        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        $ch = curl_init( $url );
+        //$date_time = date_format(date_create('@'. time()), 'c');
+        date_default_timezone_set( 'UTC' );
+        $date_time = date( DateTime::ATOM );
+        curl_setopt( $ch, CURLOPT_POSTFIELDS, $data );
+        curl_setopt( $ch, CURLOPT_HTTPHEADER, $mapped_headers );
+        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+        $response_data = curl_exec( $ch );
+        $errors = curl_error( $ch );
+        $status = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
+        curl_close( $ch );
 
         $response = array(
-            'responseData' => $responseData,
+            'response_data' => $response_data,
             'errors' => $errors,
             'status' => $status,
         );
@@ -168,7 +167,7 @@ class WP_Query_Push
         return;
     }
 
-    private function create_table($sql) {
+    private function create_table( $sql ) {
         include_once ABSPATH . 'wp-admin/includes/upgrade.php';
         dbDelta($sql);
     }
@@ -179,7 +178,7 @@ class WP_Query_Push
         $wpdb_collate = $wpdb->collate;
         $sql = "CREATE TABLE {$table_name} (
             id INT NOT NULL AUTO_INCREMENT,
-            ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            date_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             user TEXT,
             connection_id INT,
             query TEXT,
@@ -209,17 +208,15 @@ class WP_Query_Push
 
     private function drop_table_logs() {
         global $wpdb;
-        $table_logs_name = $wpdb->prefix . $this->TABLE_NAME_LOGS;
         $wpdb->query(
-            $wpdb->prepare( "DROP TABLE IF EXISTS %s;", $table_logs_name )
+            $wpdb->prepare( "DROP TABLE IF EXISTS {$wpdb->prefix}%s;", $this->TABLE_NAME_LOGS )
         );
     }
 
     private function drop_table_connections() {
         global $wpdb;
-        $table_connections_name = $wpdb->prefix . $this->TABLE_NAME_CONNECTIONS;
         $wpdb->query(
-            $wpdb->prepare( "DROP TABLE IF EXISTS %s;", $table_connections_name )
+            $wpdb->prepare( "DROP TABLE IF EXISTS {$wpdb->prefix}%s;", $this->TABLE_NAME_CONNECTIONS )
         );
     }
 }

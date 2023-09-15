@@ -3,6 +3,27 @@ if ( !defined( 'ABSPATH' ) ) { exit; } // Exit if accessed directly.
 
 class WP_Query_Push_Endpoints
 {
+    public static function nonce_check( WP_REST_Request $request ) {
+        $nonce = $request->get_header('X-WP-Nonce');
+        if ( isset( $nonce ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $nonce ) ), 'wp_rest' ) ) {
+            return true;
+        }
+        return new WP_Error( 'rest_forbidden', 'Unauthorized', [ 'status' => 401 ] );
+    }
+
+    public static function can_access_api( WP_REST_Request $request ) {
+        $nonce = $request->get_header('X-WP-Nonce');
+        if ( isset( $nonce ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $nonce ) ), 'wp_rest' ) ) {
+            return true;
+        }
+
+        $api_key = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'; // @todo: softcode this
+        if (isset( $request['x-api-key'] ) && $request['x-api-key'] === $api_key ) {
+            return true;
+        }
+        return new WP_Error( 'rest_forbidden', 'Unauthorized', [ 'status' => 401 ] );
+     }
+
     public function add_api_routes() {
         $namespace = 'wp-query-push/v1';
 
@@ -10,9 +31,7 @@ class WP_Query_Push_Endpoints
             $namespace, '/query', [
                 'methods' => 'POST',
                 'callback' => [ $this , 'handle_query' ],
-                'permission_callback' => function() {
-                    return current_user_can( 'manage_options' );
-                },
+                'permission_callback' => [ $this, 'can_access_api' ],
             ]
         );
 
@@ -20,9 +39,7 @@ class WP_Query_Push_Endpoints
             $namespace, '/send', [
                 'methods' => 'POST',
                 'callback' => [ $this , 'handle_send' ],
-                'permission_callback' => function() {
-                    return current_user_can( 'manage_options' );
-                },
+                'permission_callback' => [ $this, 'nonce_check' ],
             ]
         );
 
@@ -30,9 +47,7 @@ class WP_Query_Push_Endpoints
             $namespace, '/connections', [
                 'methods' => 'POST',
                 'callback' => [ $this , 'handle_post_connection' ],
-                'permission_callback' => function() {
-                    return current_user_can( 'manage_options' );
-                },
+                'permission_callback' => [ $this, 'nonce_check' ],
             ]
         );
 
@@ -40,9 +55,7 @@ class WP_Query_Push_Endpoints
             $namespace, '/connections/(?P<id>\d+)', [
                 'methods' => 'PUT',
                 'callback' => [ $this , 'handle_put_connection' ],
-                'permission_callback' => function() {
-                    return current_user_can( 'manage_options' );
-                },
+                'permission_callback' => [ $this, 'nonce_check' ],
             ]
         );
 
@@ -50,9 +63,7 @@ class WP_Query_Push_Endpoints
             $namespace, '/connections/(?P<id>\d+)', [
                 'methods' => 'DELETE',
                 'callback' => [ $this , 'handle_delete_connection' ],
-                'permission_callback' => function() {
-                    return current_user_can( 'manage_options' );
-                },
+                'permission_callback' => [ $this, 'nonce_check' ],
             ]
         );
 
@@ -60,9 +71,7 @@ class WP_Query_Push_Endpoints
             $namespace, '/schedules', [
                 'methods' => 'POST',
                 'callback' => [ $this, 'handle_post_scheduled_task' ],
-                'permission_callback' => function() {
-                    return current_user_can( 'manage_options' );
-                },
+                'permission_callback' => [ $this, 'nonce_check' ],
             ]
         );
 
@@ -70,9 +79,7 @@ class WP_Query_Push_Endpoints
             $namespace, '/save-query', [
                 'methods' => 'POST',
                 'callback' => [ $this, 'handle_post_save_query' ],
-                'permission_callback' => function() {
-                    return current_user_can( 'manage_options' );
-                },
+                'permission_callback' => [ $this, 'nonce_check' ],
             ]
         );
 
@@ -80,9 +87,7 @@ class WP_Query_Push_Endpoints
             $namespace, '/logs', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'handle_get_logs' ],
-                'permission_callback' => function() {
-                    return current_user_can( 'manage_options' );
-                },
+                'permission_callback' => [ $this, 'nonce_check' ],
             ]
         );
 
@@ -90,9 +95,7 @@ class WP_Query_Push_Endpoints
             $namespace, '/connections', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'handle_get_connections' ],
-                'permission_callback' => function() {
-                    return current_user_can( 'manage_options' );
-                },
+                'permission_callback' => [ $this, 'nonce_check' ],
             ]
         );
 
@@ -100,9 +103,7 @@ class WP_Query_Push_Endpoints
             $namespace, '/intervals', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'handle_get_intervals' ],
-                'permission_callback' => function() {
-                    return current_user_can( 'manage_options' );
-                },
+                'permission_callback' => [ $this, 'nonce_check' ],
             ]
         );
 
@@ -110,9 +111,23 @@ class WP_Query_Push_Endpoints
             $namespace, '/tables', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'handle_show_tables' ],
-                'permission_callback' => function() {
-                    return current_user_can( 'manage_options' );
-                },
+                'permission_callback' => [ $this, 'nonce_check' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace, '/get-api-key', [
+                'methods' => 'GET',
+                'callback' => [ $this, 'get_api_key' ],
+                'permission_callback' => [ $this, 'nonce_check' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace, '/generate-api-key', [
+                'methods' => 'GET',
+                'callback' => [ $this, 'generate_api_key' ],
+                'permission_callback' => [ $this, 'nonce_check' ],
             ]
         );
     }
@@ -379,6 +394,31 @@ class WP_Query_Push_Endpoints
         }
     }
 
+    public function get_api_key( WP_REST_Request $request ) {
+        $api_key = get_option( 'wpquerypush_api_key' );
+        if ( $api_key ) {
+            return $api_key;
+        }
+        return false;
+    }
+
+    private function generate_api_key() {
+        $random_bytes = random_bytes(32);
+        $api_key = bin2hex($random_bytes);
+        return $api_key;
+    }
+
+    public function create_new_api_key( WP_REST_Request $request ) {
+        $new_api_key = self::generate_api_key();
+        $existing_api_keys = get_option( 'wpquerypush_api_keys' );
+        if ( empty( $existing_api_keys ) ) {
+            $existing_api_keys = [];
+        }
+        array_push( $existing_api_keys, $new_api_key );
+        set_option( 'wpquerypush_api_keys', );
+        return $new_api_key;
+    }
+
     private static $_instance = null;
     public static function instance() {
         if ( is_null( self::$_instance ) ) {
@@ -386,6 +426,7 @@ class WP_Query_Push_Endpoints
         }
         return self::$_instance;
     } // End instance()
+
 
     public function __construct() {
         add_action( 'rest_api_init', [ $this, 'add_api_routes' ] );

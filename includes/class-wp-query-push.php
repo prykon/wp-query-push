@@ -111,6 +111,7 @@ class WP_Query_Push
     }
 
     public function activate_plugin() {
+        include_once ABSPATH . 'wp-admin/includes/upgrade.php';
         if ( is_multisite() ) {
             $blog_ids = $this->get_blog_ids();
             foreach ( $blog_ids as $key => $blog_id ) {
@@ -167,11 +168,6 @@ class WP_Query_Push
         return;
     }
 
-    private function create_table( $sql ) {
-        include_once ABSPATH . 'wp-admin/includes/upgrade.php';
-        dbDelta($sql);
-    }
-
     private function create_table_logs() {
         global $wpdb;
         $table_name = $wpdb->prefix . $this->TABLE_NAME_LOGS;
@@ -188,7 +184,7 @@ class WP_Query_Push
             PRIMARY KEY (id)
         )
         COLLATE {$wpdb_collate}";
-        $this->create_table( $sql );
+        maybe_create_table( $table_name, $sql );
     }
 
     private function create_table_connections() {
@@ -203,7 +199,7 @@ class WP_Query_Push
             PRIMARY KEY (id)
         )
         COLLATE {$wpdb_collate}";
-        $this->create_table( $sql );
+        maybe_create_table( $table_name, $sql );
     }
 
     private function drop_table_logs() {

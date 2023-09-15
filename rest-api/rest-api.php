@@ -11,15 +11,18 @@ class WP_Query_Push_Endpoints
         return new WP_Error( 'rest_forbidden', 'Unauthorized', [ 'status' => 401 ] );
     }
 
-    public static function can_access_api( WP_REST_Request $request ) {
+    public function can_access_api( WP_REST_Request $request ) {
         $nonce = $request->get_header('X-WP-Nonce');
         if ( isset( $nonce ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $nonce ) ), 'wp_rest' ) ) {
             return true;
         }
 
-        $api_key = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'; // @todo: softcode this
-        if (isset( $request['x-api-key'] ) && $request['x-api-key'] === $api_key ) {
-            return true;
+        if ( isset( $request['x-api-key'] ) ) {
+            $api_key = sanitize_text_field( wp_unslash( $request['x-api-key'] ) );
+            $key_is_valid = $this->check_api_key_validity( $api_key );
+            if ( $key_is_valid ) {
+                return true;
+            }
         }
         return new WP_Error( 'rest_forbidden', 'Unauthorized', [ 'status' => 401 ] );
      }
@@ -116,17 +119,17 @@ class WP_Query_Push_Endpoints
         );
 
         register_rest_route(
-            $namespace, '/get-api-key', [
+            $namespace, '/create-new-api-key', [
                 'methods' => 'GET',
-                'callback' => [ $this, 'get_api_key' ],
+                'callback' => [ $this , 'create_new_api_key' ],
                 'permission_callback' => [ $this, 'nonce_check' ],
             ]
         );
 
         register_rest_route(
-            $namespace, '/generate-api-key', [
+            $namespace, '/get-api-hints', [
                 'methods' => 'GET',
-                'callback' => [ $this, 'generate_api_key' ],
+                'callback' => [ $this , 'get_api_hints' ],
                 'permission_callback' => [ $this, 'nonce_check' ],
             ]
         );
@@ -394,10 +397,37 @@ class WP_Query_Push_Endpoints
         }
     }
 
-    public function get_api_key() {
-        $api_key = get_option( 'wpquerypush_api_key' );
-        if ( $api_key ) {
-            return $api_key;
+    private function get_api_keys() {
+        $api_keys = get_option( 'wpquerypush_api_keys' );
+        if ( $api_keys ) {
+            return $api_keys;
+        }
+        return false;
+    }
+
+    private function get_api_keys_md5() {
+        $api_keys = get_option( 'wpquerypush_api_keys' );
+        $api_md5 = [];
+        foreach( $api_keys as $key => $value ) {
+            $api_md5[] = $value['api_md5'];
+        }
+        return $api_md5;
+    }
+
+    public function get_api_hints() {
+        $api_keys = $this->get_api_keys();
+        $api_hints = [];
+        foreach( $api_keys as $key => $value ) {
+            $api_hints[] = $value['api_hint'];
+        }
+        return $api_hints;
+    }
+
+    private function check_api_key_validity( $api_key ) {
+        $all_api_keys_md5 = $this->get_api_keys_md5();
+        $api_key = md5( $api_key );
+        if ( in_array( $api_key, $all_api_keys_md5 ) ) {
+            return true;
         }
         return false;
     }
@@ -409,13 +439,19 @@ class WP_Query_Push_Endpoints
     }
 
     public function create_new_api_key( WP_REST_Request $request ) {
-        $new_api_key = self::generate_api_key();
+        $new_api_key = $this->generate_api_key();
         $existing_api_keys = get_option( 'wpquerypush_api_keys' );
         if ( empty( $existing_api_keys ) ) {
             $existing_api_keys = [];
         }
-        array_push( $existing_api_keys, $new_api_key );
-        update_option( 'wpquerypush_api_keys', $existing_api_keys );
+
+        $new_api_option = array( 
+            'api_md5' => md5( $new_api_key ),
+            'api_hint' => substr( $new_api_key, -5 )
+        );
+
+        array_push( $existing_api_keys, $new_api_option );
+        update_option( 'wpquerypush_api_keys', $existing_api_keys, false );
         return $new_api_key;
     }
 

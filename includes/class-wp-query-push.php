@@ -87,11 +87,10 @@ class WP_Query_Push
 
         $results =  $wpdb->get_results( $query );
         $data = json_encode( $results );
+
         // configure curl
         $ch = curl_init( $url );
-        //$date_time = date_format(date_create('@'. time()), 'c');
         date_default_timezone_set( 'UTC' );
-        $date_time = date( DateTime::ATOM );
         curl_setopt( $ch, CURLOPT_POSTFIELDS, $data );
         curl_setopt( $ch, CURLOPT_HTTPHEADER, $mapped_headers );
         curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
@@ -174,7 +173,7 @@ class WP_Query_Push
         $wpdb_collate = $wpdb->collate;
         $sql = "CREATE TABLE {$table_name} (
             id INT NOT NULL AUTO_INCREMENT,
-            date_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             user TEXT,
             connection_id INT,
             query TEXT,

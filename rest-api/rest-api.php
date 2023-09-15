@@ -179,7 +179,7 @@ class WP_Query_Push_Endpoints
         /*
         {
             "query": "SELECT * FROM wp_options;",
-            "start_datetime": "2023-03-04T20:28",
+            "start_dt": "2023-03-04T20:28",
             "interval": "daily",
             "connection": "2"
         }
@@ -188,7 +188,7 @@ class WP_Query_Push_Endpoints
         $body = $request->get_body();
         $data = json_decode($body, true);
         $query = $data['query'];
-        $start_datetime = $data['start_datetime'];
+        $start_ts = $data['start_ts'];
         $interval = $data['interval'];
         $connection_id = $data['connection'];
         // validate request
@@ -199,10 +199,10 @@ class WP_Query_Push_Endpoints
         ) {
             return wp_send_json( [ 'error' => 'Bad Request' ], 400 );
         }
-        if ( empty($start_datetime) ) {
-            $start_datetime = time();
+        if ( empty($start_ts) ) {
+            $start_ts = time();
         } else {
-            $start_datetime = strtotime($start_datetime);
+            $start_ts = strtotime($start_ts);
         }
         /*
         // insert into db
@@ -212,7 +212,7 @@ class WP_Query_Push_Endpoints
             $table_name,
             array(
                 "name" => $name,
-                "start_datetime" => $start_datetime,
+                "start_ts" => $start_ts,
                 "interval_key" => $interval,
                 "connection_id" => $connection_id,
                 "query" => $query
@@ -222,7 +222,7 @@ class WP_Query_Push_Endpoints
         $id = $wpdb->insert_id;
         */
         // schedule cronjob
-        wp_schedule_event( $start_datetime, $interval, 'wpquerypush_cron_hook', [ $connection_id, $query ] );
+        wp_schedule_event( $start_ts, $interval, 'wpquerypush_cron_hook', [ $connection_id, $query ] );
         // return response
         return wp_send_json( [], 200 );
     }
@@ -394,7 +394,7 @@ class WP_Query_Push_Endpoints
         }
     }
 
-    public function get_api_key( WP_REST_Request $request ) {
+    public function get_api_key() {
         $api_key = get_option( 'wpquerypush_api_key' );
         if ( $api_key ) {
             return $api_key;
@@ -403,8 +403,8 @@ class WP_Query_Push_Endpoints
     }
 
     private function generate_api_key() {
-        $random_bytes = random_bytes(32);
-        $api_key = bin2hex($random_bytes);
+        $random_bytes = random_bytes( 32 );
+        $api_key = bin2hex( $random_bytes );
         return $api_key;
     }
 
@@ -415,7 +415,7 @@ class WP_Query_Push_Endpoints
             $existing_api_keys = [];
         }
         array_push( $existing_api_keys, $new_api_key );
-        set_option( 'wpquerypush_api_keys', );
+        update_option( 'wpquerypush_api_keys', $existing_api_keys );
         return $new_api_key;
     }
 

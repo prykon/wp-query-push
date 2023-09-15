@@ -25,8 +25,8 @@ const ScheduleModal = ({
       <label htmlFor="name">Name*</label>
       <input id="name" type="text" placeholder="Name" {...register("name")} className="modalFields p-2" />
       */}
-      <label htmlFor="start_datetime">Start DateTime</label>
-      <input id="start_datetime" type="datetime-local" placeholder="Start DateTime" {...register("start_datetime", {})} className="modalFields p-2" />
+      <label htmlFor="start_dt">Start DateTime</label>
+      <input id="start_dt" type="datetime-local" placeholder="Start DateTime" {...register("start_dt", {})} className="modalFields p-2" />
       <IntervalSelect register={register} />
       <ConnectionSelect onAdd={onAddConnection} register={register} />
       {errors.connection?.type === 'required' && <p role="alert" className="text-red-400 font-medium">Connection is required</p>}

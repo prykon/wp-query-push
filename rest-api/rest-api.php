@@ -120,7 +120,7 @@ class WP_Query_Push_Endpoints
 
         register_rest_route(
             $namespace, '/create-new-api-key', [
-                'methods' => 'GET',
+                'methods' => 'POST',
                 'callback' => [ $this , 'create_new_api_key' ],
                 'permission_callback' => [ $this, 'nonce_check' ],
             ]
@@ -133,6 +133,15 @@ class WP_Query_Push_Endpoints
                 'permission_callback' => [ $this, 'nonce_check' ],
             ]
         );
+
+        register_rest_route(
+            $namespace, '/delete-api-key-from-hint', [
+                'methods' => 'POST',
+                'callback' => [ $this , 'delete_api_key_from_hint' ],
+                'permission_callback' => [ $this, 'nonce_check' ],
+            ]
+        );
+
     }
 
     public static function run_query( $query ) {
@@ -447,12 +456,29 @@ class WP_Query_Push_Endpoints
 
         $new_api_option = array( 
             'api_md5' => md5( $new_api_key ),
-            'api_hint' => substr( $new_api_key, -5 )
+            'api_hint' => substr( $new_api_key, -7 )
         );
 
         array_push( $existing_api_keys, $new_api_option );
         update_option( 'wpquerypush_api_keys', $existing_api_keys, false );
-        return $new_api_key;
+        return true;
+    }
+
+    public function delete_api_key_from_hint( WP_REST_Request $request ) {
+        $params = $request->get_params();
+        if ( !isset( $params['hint'] ) || empty( $params['hint'] ) ) {
+            return wp_send_json( [ 'error' => 'Bad Request' ], 400 );
+        }
+        $api_hint = sanitize_text_field( wp_unslash( $params['hint'] ) );
+
+        $api_keys = $this->get_api_keys();
+        foreach ($api_keys as $key => $value) {
+            if ( isset( $value['api_hint'] ) && $value['api_hint'] === $api_hint ) {
+                unset( $api_keys[$key] );
+            }
+        }
+        update_option( 'wpquerypush_api_keys', $api_keys, false );
+        return $api_hint;
     }
 
     private static $_instance = null;

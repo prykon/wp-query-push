@@ -461,7 +461,7 @@ class WP_Query_Push_Endpoints
 
         array_push( $existing_api_keys, $new_api_option );
         update_option( 'wpquerypush_api_keys', $existing_api_keys, false );
-        return true;
+        return $new_api_key;
     }
 
     public function delete_api_key_from_hint( WP_REST_Request $request ) {

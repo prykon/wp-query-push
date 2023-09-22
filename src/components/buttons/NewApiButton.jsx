@@ -17,7 +17,7 @@ const handleNewApiKeyModalSubmit = async () => {
     hideClass: { backdrop: 'swal2-noanimation' },
     html: (
       <div className="flex flex-col items-center justify-center">
-        <p className="mb-4">This key will never be shown again after closing this window.</p>
+        <p className="mb-4 danger-text">This key will never be shown again after closing this window.</p>
         <p className="mb-4">Please save it in a safe place.</p>
         <p className="mb-4">
           <small>

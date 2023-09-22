@@ -116,3 +116,31 @@ export const send = async(data) => {
     };
   };
 };
+
+export const createApiKey = async() => {
+  const url = `/wp-json/wp-query-push/v1/create-new-api-key`;
+  const body = null;
+  try {
+    return post(url, body);
+  } catch(error) {
+    console.error(error);
+    return {
+      data: null,
+      error
+    };
+  };
+};
+
+export const deleteApiKey = async(apiHint) => {
+  const url = "/wp-json/wp-query-push/v1/delete-api-key-from-hint";
+  const body = JSON.stringify({'hint':apiHint});
+  try {
+    return post(url, body);
+  } catch(error) {
+    console.error(error);
+    return {
+      data: null,
+      error
+    };
+  };
+};

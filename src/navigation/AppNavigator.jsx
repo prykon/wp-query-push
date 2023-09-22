@@ -5,6 +5,7 @@ import HomeScreen from "@/screens/HomeScreen";
 import EditorScreen from "@/screens/EditorScreen";
 import ConnectionsScreen from "@/screens/ConnectionsScreen";
 import LogsScreen from "@/screens/LogsScreen";
+import SettingsScreen from "@/screens/SettingsScreen";
 
 const AppNavigator = () => (
   <div className="flex-col h-full w-full m-auto p-12">
@@ -14,6 +15,7 @@ const AppNavigator = () => (
       <Tab>Editor</Tab>
       <Tab>Connections</Tab>
       <Tab>Logs</Tab>
+      <Tab>Settings</Tab>
     </TabList>
     <TabPanel>
       <HomeScreen />
@@ -26,6 +28,9 @@ const AppNavigator = () => (
     </TabPanel>
     <TabPanel>
       <LogsScreen />
+    </TabPanel>
+    <TabPanel>
+      <SettingsScreen />
     </TabPanel>
   </Tabs>
   </div>

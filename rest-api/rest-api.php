@@ -414,13 +414,13 @@ class WP_Query_Push_Endpoints
         return false;
     }
 
-    private function get_api_keys_md5() {
+    private function get_api_keys_hashes() {
         $api_keys = get_option( 'wpquerypush_api_keys' );
-        $api_md5 = [];
+        $api_hash = [];
         foreach( $api_keys as $key => $value ) {
-            $api_md5[] = $value['api_md5'];
+            $api_hash[] = $value['api_hash'];
         }
-        return $api_md5;
+        return $api_hash;
     }
 
     public function get_api_hints() {
@@ -433,10 +433,12 @@ class WP_Query_Push_Endpoints
     }
 
     private function check_api_key_validity( $api_key ) {
-        $all_api_keys_md5 = $this->get_api_keys_md5();
-        $api_key = md5( $api_key );
-        if ( in_array( $api_key, $all_api_keys_md5 ) ) {
-            return true;
+        $all_api_keys_hashes = $this->get_api_keys_hashes();
+        foreach ( $all_api_keys_hashes as $saved_hash ) {
+            error_log( 'Checking: ' . $api_key . ', ' . $saved_hash );
+            if ( wp_check_password( $api_key, $saved_hash ) ) {
+                return true;
+            }
         }
         return false;
     }
@@ -455,7 +457,7 @@ class WP_Query_Push_Endpoints
         }
 
         $new_api_option = array( 
-            'api_md5' => md5( $new_api_key ),
+            'api_hash' => wp_hash_password( $new_api_key ),
             'api_hint' => substr( $new_api_key, -7 )
         );
 

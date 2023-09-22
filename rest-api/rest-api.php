@@ -435,7 +435,6 @@ class WP_Query_Push_Endpoints
     private function check_api_key_validity( $api_key ) {
         $all_api_keys_hashes = $this->get_api_keys_hashes();
         foreach ( $all_api_keys_hashes as $saved_hash ) {
-            error_log( 'Checking: ' . $api_key . ', ' . $saved_hash );
             if ( wp_check_password( $api_key, $saved_hash ) ) {
                 return true;
             }

@@ -1,5 +1,3 @@
-import pkg from "@/../package.json";
-
 import ApiHints from "@/components/ApiHints";
 import NewApiButton from "@/components/buttons/NewApiButton";
 import useApiHints from "@/hooks/use-api-hints";

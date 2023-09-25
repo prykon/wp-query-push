@@ -12,7 +12,8 @@
     "phpbf": "vendor/bin/phpcbf --standard=ruleset.xml *.php includes/",
     "phpunit": "vendor/bin/phpunit tests",
     "zip": "zip -r wp-query-push.zip build/ wp-query-push.php includes/ ",
-    "deploy": "sudo docker cp wp-query-push.zip c0280195e356:/var/www/html/wp-content/plugins/wp-query-push"
+    "deploy": "sudo docker cp wp-query-push.zip $npm_config_deploy_container_id:/var/www/html/wp-content/plugins",
+    "check-env": "node -e 'console.log(process.env)' | grep npm"
   },
   "dependencies": {
     "@sweetalert2/theme-wordpress-admin": "^5.0.15",

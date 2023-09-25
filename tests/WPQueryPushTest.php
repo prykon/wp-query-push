@@ -57,7 +57,7 @@ final class WPQueryPushTest extends \WP_Mock\Tools\TestCase
     //$plugin = new WPQueryPush();
     //$query = $plugin->parse_request_query( $request );
     //$query = $plugin->parse_request_query( $request );
-    $query = \WPQueryPush\Plugin::instance()->parseRequestQuery( $request );
+    $query = \WP_Query_Push::instance()->parseRequestQuery( $request );
     $this->assertSame( "SELECT * FROM wp_options", $query );
   }
 }

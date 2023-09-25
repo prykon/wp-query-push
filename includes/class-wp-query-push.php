@@ -144,7 +144,7 @@ class WP_Query_Push
     public function delete_cron_jobs() {
         $timestamp = wp_next_scheduled( 'wpquerypush_cron_hook' );
         wp_unschedule_event( $timestamp, 'wpquerypush_cron_hook' );
-        remove_action( 'wpquerypush_cron_hook', 'wpquerypush_cron_exec', 10, 2 );
+        remove_action( 'wpquerypush_cron_hook', 'wpquerypush_cron_exec', 10 );
     }
 
     public function uninstall() {
@@ -156,7 +156,7 @@ class WP_Query_Push
                 $this->drop_table_logs();
                 $this->delete_cron_jobs();
                 delete_option( 'wpquerypush_db_version' );
-                restore_current_blog( $blog_id );
+                restore_current_blog( );
             }
             return;
         }

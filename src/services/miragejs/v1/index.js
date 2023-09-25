@@ -80,7 +80,7 @@ const getConnections = (schema, request) => {
       "name": "Conn 1",
       "type": "HTTP/S",
       "data": JSON.stringify({
-        "url": "http://localhost:3000/wp-json/wpquerypush/v1/query",
+        "url": "http://localhost:3000/wp-json/wp-query-push/v1/query",
         "method": "POST",
         "headers": {
           "Content-Type": "application/json",
@@ -163,7 +163,7 @@ const send = (schema, request) => {
 };
 
 export const v1 = (server) => {
-  server.namespace = "/wp-json/wpquerypush";
+  server.namespace = "/wp-json/wp-query-push";
   server.timing = 2000;
   //this.options("*", (schema, request) => handleOptions(schema, request));
   server.get("/v1/connections", (schema, request) => getConnections(schema, request));

@@ -11,9 +11,8 @@
     "phpcs": "vendor/bin/phpcs --standard=ruleset.xml *.php includes/",
     "phpbf": "vendor/bin/phpcbf --standard=ruleset.xml *.php includes/",
     "phpunit": "vendor/bin/phpunit tests",
-    "zip": "zip -r wp-query-push.zip build/ wp-query-push.php includes/ rest-api/",
+    "zip": "zip -r wp-query-push.zip build/ wp-query-push.php includes/ rest-api/ templates/ vendor/",
     "deploy": "sudo docker cp wp-query-push.zip $npm_config_deploy_container_id:/var/www/html/wp-content/plugins",
-    "clean": "rm -rf /build wp-query-push.zip",
     "check-env": "node -e 'console.log(process.env)' | grep npm"
   },
   "dependencies": {

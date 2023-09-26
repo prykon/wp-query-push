@@ -17,8 +17,9 @@ class WP_Query_Push_Endpoints
             return true;
         }
 
-        if ( isset( $request['x-api-key'] ) ) {
-            $api_key = sanitize_text_field( wp_unslash( $request['x-api-key'] ) );
+        $api_key_header = $request->get_header('x-api-key');
+        if ( isset( $api_key_header ) ) {
+            $api_key = sanitize_text_field( wp_unslash( $api_key_header ) );
             $key_is_valid = $this->check_api_key_validity( $api_key );
             if ( $key_is_valid ) {
                 return true;
@@ -74,14 +75,6 @@ class WP_Query_Push_Endpoints
             $namespace, '/schedules', [
                 'methods' => 'POST',
                 'callback' => [ $this, 'handle_post_scheduled_task' ],
-                'permission_callback' => [ $this, 'nonce_check' ],
-            ]
-        );
-
-        register_rest_route(
-            $namespace, '/save-query', [
-                'methods' => 'POST',
-                'callback' => [ $this, 'handle_post_save_query' ],
                 'permission_callback' => [ $this, 'nonce_check' ],
             ]
         );
@@ -177,8 +170,7 @@ class WP_Query_Push_Endpoints
     }
 
     public function handle_show_tables( WP_REST_Request $request ) {
-        //wp_schedule_event(time(), 'every_minute', 'wpquerypush_cron_hook', array( rand(5, 515) ));
-        $query = "SHOW TABLES";
+        $query = "SHOW TABLES;";
         return $this->run_query_json( $query );
     }
 
@@ -188,14 +180,6 @@ class WP_Query_Push_Endpoints
     }
 
     public function handle_post_scheduled_task( WP_REST_Request $request ) {
-        /*
-        {
-            "query": "SELECT * FROM wp_options;",
-            "start_dt": "2023-03-04T20:28",
-            "interval": "daily",
-            "connection": "2"
-        }
-        */
         // parse request
         $body = $request->get_body();
         $data = json_decode($body, true);
@@ -216,23 +200,6 @@ class WP_Query_Push_Endpoints
         } else {
             $start_ts = strtotime($start_ts);
         }
-        /*
-        // insert into db
-        global $wpdb;
-        $table_name = $wpdb->prefix . $this->TABLE_NAME_SCHEDULED_TASKS;
-        $wpdb->insert(
-            $table_name,
-            array(
-                "name" => $name,
-                "start_ts" => $start_ts,
-                "interval_key" => $interval,
-                "connection_id" => $connection_id,
-                "query" => $query
-            ),
-            array( "%s", "%s", "%s", "%d", "%d", "%s")
-        );
-        $id = $wpdb->insert_id;
-        */
         // schedule cronjob
         wp_schedule_event( $start_ts, $interval, 'wpquerypush_cron_hook', [ $connection_id, $query ] );
         // return response
@@ -240,26 +207,7 @@ class WP_Query_Push_Endpoints
     }
 
     public function handle_post_connection( WP_REST_Request $request ) {
-        /*
-        {
-            "name": "FB",
-            "type": "http",
-            "requestData": {
-                "url": "https://wearing-lesser-isle-psychiatry.trycloudflare.com",
-                "headers": [
-                    {
-                        "key": "Content-Type",
-                        "value": "application/json"
-                    },
-                    {
-                        "key": "Authorization",
-                        "value": "Bearer 123xyz"
-                    }
-                ]
-            }
-        }
-        */
-
+        // parse request
         $body = $request->get_body();
         $data = json_decode( $body, true );
         $name = $data['name'];
@@ -273,6 +221,9 @@ class WP_Query_Push_Endpoints
 
         global $wpdb;
         $table_name = $wpdb->prefix . WP_Query_Push::instance()->TABLE_NAME_CONNECTIONS;
+        // create table on-demand if it does not exist
+        WP_Query_Push::instance()->create_table_connections();
+        // insert connection
         $wpdb->insert(
             $table_name,
             [
@@ -355,43 +306,12 @@ class WP_Query_Push_Endpoints
         return wp_send_json( [], 200 );
     }
 
-    public function handle_post_interval( WP_REST_Request $request ) {
-        // TODO: parse and validate request data
-        $key = 'every_five_seconds';
-        $interval = 5;
-        $display = 'Every Five Seconds';
-        $schedules = wp_get_schedules();
-        $schedules[$key] = array(
-            'interval' => $interval,
-            'display'  => $display
-        );
-        return wp_send_json( array( 'id' => $key ), 200 );
-    }
-
     public function parse_request_query( WP_REST_Request $request ) {
+        // parse request
         $body = $request->get_body();
         $data = json_decode($body, true);
         $query = $data['statement'];
         return $query;
-    }
-
-    public function handle_post_save_query( WP_REST_Request $request ) {
-        try {
-            $query = $this->parse_request_query($request);
-            if ( empty( $query ) ) {
-                return wp_send_json( [ 'error' => 'Bad Request' ], 400 );
-            }
-
-            global $wpdb;
-            $table_name = $wpdb->prefix . WP_Query_Push::instance()->TABLE_NAME_QUERIES;
-            $wpdb->insert(
-                $table_name,
-                [ 'query' => $query ],
-                [ "%s" ] );
-            return wp_send_json( [ 'id' => $wpdb->insert_id ], 200 );
-        } catch ( Exception $e ) {
-            return wp_send_json( [ 'error' => 'Server Error' ], 500 );
-        }
     }
 
     public function handle_query( WP_REST_Request $request ) {

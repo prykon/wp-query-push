@@ -1,13 +1,10 @@
 import { useState } from "react";
 
 import { downloadFile } from "@/helpers";
-import { json2csvAsync } from "json-2-csv";
-
-//import { exportToJson } from "@/helpers";
-//import CsvDownload from "react-json-to-csv";
+import { json2csv } from "json-2-csv";
 
 const exportCSV = async(data) => {
-  const csvData = await json2csvAsync(data);
+  const csvData = await json2csv(data);
   return downloadFile({
     data: csvData,
     fileName: "Untitled.csv",

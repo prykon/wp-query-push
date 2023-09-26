@@ -5,13 +5,20 @@ import Changelog from "@/components/Changelog";
 const HomeScreen = () => {
   const changelogData = [
     {
-      version: "0.5.1",
+      version: "0.6",
+      changes: [
+        "Create tables on-demand (improved multisite support)",
+        "Initial Developer API"
+      ]
+    },
+    {
+      version: "0.5",
       changes: [
         "Multisite Support"
       ]
     },
     {
-      version: "0.4.1",
+      version: "0.4",
       changes: [
         "Editable Connections",
         "WP Query Push specific nonce",
@@ -19,19 +26,19 @@ const HomeScreen = () => {
       ]
     },
     {
-      version: "0.3.2",
+      version: "0.3",
       changes: [
         "Plugin auto-update",
       ]
     },
     {
-      version: "0.2.2",
+      version: "0.2",
       changes: [
         "Modal to display truncated table values",
       ]
     },
     {
-      version: "0.1.11",
+      version: "0.1",
       changes: [
         "Initial release",
       ]

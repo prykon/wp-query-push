@@ -20,28 +20,10 @@ class WP_Query_Push
             self::$instance = new WP_Query_Push();
         }
         return self::$instance;
-        /*
-        static $instance = null;
-        if (null === $instance) {
-        $instance = new WP_Query_Push();
-        }
-        return $instance;
-        */
     }
 
-    public $TABLE_NAME_QUERIES = "wpquerypush_queries";
-    public $TABLE_NAME_SCHEDULED_TASKS = "wpquerypush_scheduled_tasks";
     public $TABLE_NAME_CONNECTIONS = "wpquerypush_connections";
     public $TABLE_NAME_LOGS = "wpquerypush_logs";
-
-    //private $CRON_HOOK_NAME = "wpquerypush_cron_exec";
-
-    public function wp_query_push_add_cron_interval( $schedules ) {
-        $schedules['five_seconds'] = array(
-        'interval' => 5,
-        'display'  => esc_html__( 'Every Five Seconds' ), );
-        return $schedules;
-    }
 
     private function get_connection( $connection_id ) {
         global $wpdb;
@@ -56,6 +38,9 @@ class WP_Query_Push
         global $wpdb;
         $current_user_id = get_current_user_id();
         $table_name = $wpdb->prefix . $this->TABLE_NAME_LOGS;
+        // create table on-demand if it does not exist
+        $this->create_table_logs();
+        // insert log
         $wpdb->insert(
             $table_name,
             array(
@@ -67,7 +52,7 @@ class WP_Query_Push
             ),
             array( '%s', '%d', '%s', '%s', '%s' )
         );
-        return true;
+        return $wpdb->insert_id;
     }
 
     public function process_task( $connection_id, $query ) {
@@ -110,7 +95,7 @@ class WP_Query_Push
     }
 
     public function activate_plugin() {
-        include_once ABSPATH . 'wp-admin/includes/upgrade.php';
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         if ( is_multisite() ) {
             $blog_ids = $this->get_blog_ids();
             foreach ( $blog_ids as $key => $blog_id ) {
@@ -168,6 +153,7 @@ class WP_Query_Push
     }
 
     private function create_table_logs() {
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         global $wpdb;
         $table_name = $wpdb->prefix . $this->TABLE_NAME_LOGS;
         $wpdb_collate = $wpdb->collate;
@@ -186,7 +172,8 @@ class WP_Query_Push
         maybe_create_table( $table_name, $sql );
     }
 
-    private function create_table_connections() {
+    public function create_table_connections() {
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         global $wpdb;
         $table_name = $wpdb->prefix . $this->TABLE_NAME_CONNECTIONS;
         $wpdb_collate = $wpdb->collate;

@@ -17,8 +17,9 @@ class WP_Query_Push_Endpoints
             return true;
         }
 
-        if ( isset( $request['x-api-key'] ) ) {
-            $api_key = sanitize_text_field( wp_unslash( $request['x-api-key'] ) );
+        $api_key_header = $request->get_header('x-api-key');
+        if ( isset( $api_key_header ) ) {
+            $api_key = sanitize_text_field( wp_unslash( $api_key_header ) );
             $key_is_valid = $this->check_api_key_validity( $api_key );
             if ( $key_is_valid ) {
                 return true;

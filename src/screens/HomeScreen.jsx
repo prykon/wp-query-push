@@ -7,8 +7,8 @@ const HomeScreen = () => {
     {
       version: "0.6",
       changes: [
-        "Create tables on-demand (improved multisite support)",
-        "Initial Developer API"
+        "Developer API",
+        "Create tables on-demand (improved multisite support)"
       ]
     },
     {

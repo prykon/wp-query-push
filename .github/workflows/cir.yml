@@ -74,7 +74,7 @@ jobs:
     - name: Create release ZIP file
       run: |
         mkdir ${{ env.PLUGIN_SLUG }}
-        cp -r LICENSE ${{ env.PLUGIN_SLUG }}.php index.php build includes templates vendor ${{ env.PLUGIN_SLUG }}/
+        cp -r LICENSE ${{ env.PLUGIN_SLUG }}.php index.php build includes rest-api templates vendor ${{ env.PLUGIN_SLUG }}/
         zip -r ${{ env.ZIP_FILE }} ${{ env.PLUGIN_SLUG }}
 
     - name: Create GitHub release

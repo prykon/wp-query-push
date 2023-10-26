@@ -1,7 +1,9 @@
 import { post, put, delet } from "@/helpers";
 
+import { BASE_URL } from "@/constants";
+
 export const runQuery = async({ query }) => {
-  const url = "/wp-json/wp-query-push/v1/query";
+  const url = `${BASE_URL}/query`;
   const body = JSON.stringify({ statement: query });
   try {
     return post(url, body);
@@ -15,7 +17,7 @@ export const runQuery = async({ query }) => {
 };
 
 export const scheduleTask = async(data) => {
-  const url = "/wp-json/wp-query-push/v1/schedule-task";
+  const url = `${BASE_URL}/schedule-task`;
   const body = JSON.stringify(data);
   try {
     return post(url, body);
@@ -39,7 +41,7 @@ export const createConnection = async(data) => {
       headers: mappedHeaders
     }
   };
-  const url = "/wp-json/wp-query-push/v1/connections";
+  const url = `${BASE_URL}/connections`;
   const body = JSON.stringify(mappedData);
   try {
     return post(url, body);
@@ -63,7 +65,7 @@ export const updateConnection = async({ id, data }) => {
       headers: mappedHeaders
     }
   };
-  const url = `/wp-json/wp-query-push/v1/connections/${id}`;
+  const url = `${BASE_URL}/connections/${id}`;
   const body = JSON.stringify(mappedData);
   try {
     return put(url, body);
@@ -77,7 +79,7 @@ export const updateConnection = async({ id, data }) => {
 };
 
 export const deleteConnection = async(id) => {
-  const url = `/wp-json/wp-query-push/v1/connections/${id}`;
+  const url = `${BASE_URL}/connections/${id}`;
   try {
     return delet(url);
   } catch(error) {
@@ -90,7 +92,7 @@ export const deleteConnection = async(id) => {
 };
 
 export const createSchedule = async(data) => {
-  const url = "/wp-json/wp-query-push/v1/schedules";
+  const url = `${BASE_URL}/schedules`;
   const body = JSON.stringify(data);
   try {
     return post(url, body);
@@ -104,7 +106,7 @@ export const createSchedule = async(data) => {
 };
 
 export const send = async(data) => {
-  const url = "/wp-json/wp-query-push/v1/send";
+  const url = `${BASE_URL}/send`;
   const body = JSON.stringify(data);
   try {
     return post(url, body);
@@ -118,7 +120,7 @@ export const send = async(data) => {
 };
 
 export const createApiKey = async() => {
-  const url = `/wp-json/wp-query-push/v1/create-new-api-key`;
+  const url = `${BASE_URL}/create-new-api-key`;
   const body = null;
   try {
     return post(url, body);
@@ -132,7 +134,7 @@ export const createApiKey = async() => {
 };
 
 export const deleteApiKey = async(apiHint) => {
-  const url = "/wp-json/wp-query-push/v1/delete-api-key-from-hint";
+  const url = `${BASE_URL}/delete-api-key-from-hint`;
   const body = JSON.stringify({'hint':apiHint});
   try {
     return post(url, body);

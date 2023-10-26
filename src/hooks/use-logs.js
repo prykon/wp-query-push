@@ -1,5 +1,5 @@
 import useSWR from "swr";
 import { fetcher } from "@/helpers";
-
-const useLogs = () => useSWR("../wp-json/wp-query-push/v1/logs", fetcher); // Reason for double dots: https://github.com/zdmc23/wp-query-push/pull/9
+import { BASE_URL } from "@/constants";
+const useLogs = () => useSWR(`${BASE_URL}/logs`, fetcher);
 export default useLogs;

@@ -5,6 +5,12 @@ import Changelog from "@/components/Changelog";
 const HomeScreen = () => {
   const changelogData = [
     {
+      version: "0.7",
+      changes: [
+        "Support WP Instances installed in subdirectories"
+      ]
+    },
+    {
       version: "0.6",
       changes: [
         "Developer API",

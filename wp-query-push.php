@@ -70,8 +70,8 @@ function enqueue_admin_scripts() {
     }
 }
 
-function wpquerypush_cron_exec( $query, $connection_id ) {
-    WP_Query_Push::instance()->process_task( $query, $connection_id );
+function wpquerypush_cron_exec( $connection_id, $query ) {
+    WP_Query_Push::instance()->process_task( $connection_id, $query );
 }
 
 function render_plugin_content() {

@@ -55,8 +55,22 @@ class WP_Query_Push
         return $wpdb->insert_id;
     }
 
+    public function get_query_by_id( $query_id ) {
+        $all_queries = get_option( 'wp_query_push_queries', [] );
+        $query = null;
+        foreach ( $all_queries as $key => $value ) {
+            if ( $key == $query_id ) {
+                $query = $value;
+            }
+        }
+        return $query;
+    }
+
     public function process_task( $connection_id, $query ) {
         global $wpdb;
+        if ( is_int( $query ) ) {
+            $query = $this->get_query_by_id( $query );
+        }
         $connection = $this->get_connection( $connection_id );
         $requestData = json_decode( $connection->config );
         // prep the request

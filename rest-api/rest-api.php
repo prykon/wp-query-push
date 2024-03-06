@@ -184,24 +184,30 @@ class WP_Query_Push_Endpoints
         $body = $request->get_body();
         $data = json_decode($body, true);
         $query = $data['query'];
-        $start_ts = $data['start_ts'];
+        $start_dt = $data['start_dt'];
         $interval = $data['interval'];
-        $connection_id = $data['connection'];
+        $connection_id = (int)$data['connection'];
         // validate request
         if (
             empty( $query ) ||
-            empty($interval) ||
-            empty($connection_id)
+            empty( $interval ) ||
+            empty( $connection_id )
         ) {
             return wp_send_json( [ 'error' => 'Bad Request' ], 400 );
         }
-        if ( empty($start_ts) ) {
-            $start_ts = time();
+        if ( empty( $start_dt ) ) {
+            $start_dt = time();
         } else {
-            $start_ts = strtotime($start_ts);
+            $start_dt = strtotime( $start_dt );
         }
+
+        $all_queries = get_option( 'wp_query_push_queries', [] );
+        $all_queries[] = $query;
+        update_option( 'wp_query_push_queries', $all_queries );
+        $new_query_id = count( $all_queries ) - 1;
+
         // schedule cronjob
-        wp_schedule_event( $start_ts, $interval, 'wpquerypush_cron_hook', [ $connection_id, $query ] );
+        wp_schedule_event( $start_dt, $interval, 'wpquerypush_cron_hook', [ $connection_id, $new_query_id ] );
         // return response
         return wp_send_json( [], 200 );
     }
@@ -294,7 +300,7 @@ class WP_Query_Push_Endpoints
             return wp_send_json([ "error" => "Bad Request" ], 400);
         }
         // process task (manual)
-        $res = WP_Query_Push::instance()->process_task($connection_id, $query);
+        $res = WP_Query_Push::instance()->process_task( $connection_id, $query ) ;
         $response_data = $res['response_data'];
         $errors = $res['errors'];
         $status = $res['status'];

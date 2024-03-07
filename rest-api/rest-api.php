@@ -88,6 +88,14 @@ class WP_Query_Push_Endpoints
         );
 
         register_rest_route(
+            $namespace, '/get-queries', [
+                'methods' => 'GET',
+                'callback' => [ $this, 'get_queries' ],
+                'permission_callback' => [ $this, 'nonce_check' ],
+            ]
+        );
+
+        register_rest_route(
             $namespace, '/connections', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'handle_get_connections' ],
@@ -155,6 +163,10 @@ class WP_Query_Push_Endpoints
 
     public function handle_get_logs( WP_REST_Request $request ) {
         return $this->select_star( WP_Query_Push::instance()->TABLE_NAME_LOGS );
+    }
+
+    public function get_queries( WP_REST_Request $request ) {
+        return get_option( 'wp_query_push_queries', [] );
     }
 
     public function handle_get_connections( WP_REST_Request $request ) {

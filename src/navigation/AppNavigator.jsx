@@ -3,6 +3,7 @@ import "react-tabs/style/react-tabs.css";
 
 import HomeScreen from "@/screens/HomeScreen";
 import EditorScreen from "@/screens/EditorScreen";
+import QueriesScreen from "@/screens/QueriesScreen";
 import ConnectionsScreen from "@/screens/ConnectionsScreen";
 import LogsScreen from "@/screens/LogsScreen";
 import SettingsScreen from "@/screens/SettingsScreen";
@@ -13,6 +14,7 @@ const AppNavigator = () => (
     <TabList>
       <Tab>Home</Tab>
       <Tab>Editor</Tab>
+      <Tab>Queries</Tab>
       <Tab>Connections</Tab>
       <Tab>Logs</Tab>
       <Tab>Settings</Tab>
@@ -22,6 +24,9 @@ const AppNavigator = () => (
     </TabPanel>
     <TabPanel>
       <EditorScreen />
+    </TabPanel>
+    <TabPanel>
+      <QueriesScreen />
     </TabPanel>
     <TabPanel>
       <ConnectionsScreen />

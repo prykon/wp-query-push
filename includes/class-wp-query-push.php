@@ -25,6 +25,8 @@ class WP_Query_Push
     public $TABLE_NAME_CONNECTIONS = "wpquerypush_connections";
     public $TABLE_NAME_LOGS = "wpquerypush_logs";
 
+    public $TABLE_NAME_QUERIES = "wpquerypush_queries";
+
     private function get_connection( $connection_id ) {
         global $wpdb;
         $table_name =  $wpdb->prefix . $this->TABLE_NAME_CONNECTIONS;
@@ -32,6 +34,15 @@ class WP_Query_Push
             $wpdb->prepare( "SELECT * FROM {$table_name} WHERE id = %d", $connection_id )
         );
         return $connection;
+    }
+
+    private function get_query( $query_id ) {
+        global $wpdb;
+        $table_name =  $wpdb->prefix . $this->TABLE_NAME_QUERIES;
+        $query = $wpdb->get_row(
+            $wpdb->prepare( "SELECT * FROM {$table_name} WHERE id = %d", $query_id )
+        );
+        return $query;
     }
 
     private function insert_log( $connection_id, $query, $response ) {
@@ -55,22 +66,13 @@ class WP_Query_Push
         return $wpdb->insert_id;
     }
 
-    public function get_query_by_id( $query_id ) {
-        $all_queries = get_option( 'wp_query_push_queries', [] );
-        $query = null;
-        foreach ( $all_queries as $key => $value ) {
-            if ( $key == $query_id ) {
-                $query = $value;
-            }
-        }
-        return $query;
-    }
-
-    public function process_task( $connection_id, $query ) {
+    public function process_task( $connection_id, $query_id = null ) {
         global $wpdb;
-        if ( is_int( $query ) ) {
-            $query = $this->get_query_by_id( $query );
+
+        if ( $query_id ) {
+            $query = $this->get_query( $query_id );
         }
+
         $connection = $this->get_connection( $connection_id );
         $requestData = json_decode( $connection->config );
         // prep the request
@@ -115,6 +117,7 @@ class WP_Query_Push
             foreach ( $blog_ids as $key => $blog_id ) {
                 switch_to_blog( $blog_id );
                 $this->create_table_connections();
+                $this->create_table_queries();
                 $this->create_table_logs();
                 update_option( 'wpquerypush_db_version', '0.1.0');
                 restore_current_blog();
@@ -122,6 +125,7 @@ class WP_Query_Push
             return;
         }
         $this->create_table_connections();
+        $this->create_table_queries();
         $this->create_table_logs();
         update_option( 'wpquerypush_db_version', '0.1.0');
         return;
@@ -152,6 +156,7 @@ class WP_Query_Push
             foreach( $blog_ids as $blog_id ) {
                 switch_to_blog( $blog_id );
                 $this->drop_table_connections();
+                $this->drop_table_queries();
                 $this->drop_table_logs();
                 $this->delete_cron_jobs();
                 delete_option( 'wpquerypush_db_version' );
@@ -160,6 +165,7 @@ class WP_Query_Push
             return;
         }
         $this->drop_table_connections();
+        $this->drop_table_queries();
         $this->drop_table_logs();
         $this->delete_cron_jobs();
         delete_option( 'wpquerypush_db_version' );
@@ -202,6 +208,20 @@ class WP_Query_Push
         maybe_create_table( $table_name, $sql );
     }
 
+    public function create_table_queries() {
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        global $wpdb;
+        $table_name = $wpdb->prefix . $this->TABLE_NAME_QUERIES;
+        $wpdb_collate = $wpdb->collate;
+        $sql = "CREATE TABLE {$table_name} (
+            id INT NOT NULL AUTO_INCREMENT,
+            query TEXT NOT NULL,
+            PRIMARY KEY (id)
+        )
+        COLLATE {$wpdb_collate}";
+        maybe_create_table( $table_name, $sql );
+    }
+
     private function drop_table_logs() {
         global $wpdb;
         $wpdb->query(
@@ -213,6 +233,12 @@ class WP_Query_Push
         global $wpdb;
         $wpdb->query(
             $wpdb->prepare( "DROP TABLE IF EXISTS {$wpdb->prefix}%s;", $this->TABLE_NAME_CONNECTIONS )
+        );
+    }
+    private function drop_table_queries() {
+        global $wpdb;
+        $wpdb->query(
+            $wpdb->prepare( "DROP TABLE IF EXISTS {$wpdb->prefix}%s;", $this->TABLE_NAME_QUERIES )
         );
     }
 }

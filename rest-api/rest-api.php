@@ -90,7 +90,7 @@ class WP_Query_Push_Endpoints
         register_rest_route(
             $namespace, '/get-queries', [
                 'methods' => 'GET',
-                'callback' => [ $this, 'get_queries' ],
+                'callback' => [ $this, 'handle_get_queries' ],
                 'permission_callback' => [ $this, 'nonce_check' ],
             ]
         );
@@ -155,6 +155,23 @@ class WP_Query_Push_Endpoints
         return wp_send_json( $rs, 200 );
     }
 
+    private function add_new_query( $query ) {
+        global $wpdb;
+        $table_name =  $wpdb->prefix . WP_Query_Push::instance()->TABLE_NAME_QUERIES;
+        $result = $wpdb->insert(
+            $table_name,
+            array(
+                'query' => $query,
+            )
+        );
+
+        if ( $result ) {
+            return $wpdb->insert_id;
+        } else {
+            return false;
+        }
+    }
+
     private function select_star( $table_name ) {
         global $wpdb;
         $query = "SELECT * FROM " . $wpdb->prefix . $table_name;
@@ -163,10 +180,6 @@ class WP_Query_Push_Endpoints
 
     public function handle_get_logs( WP_REST_Request $request ) {
         return $this->select_star( WP_Query_Push::instance()->TABLE_NAME_LOGS );
-    }
-
-    public function get_queries( WP_REST_Request $request ) {
-        return get_option( 'wp_query_push_queries', [] );
     }
 
     public function handle_get_connections( WP_REST_Request $request ) {
@@ -213,10 +226,10 @@ class WP_Query_Push_Endpoints
             $start_dt = strtotime( $start_dt );
         }
 
-        $all_queries = get_option( 'wp_query_push_queries', [] );
-        $all_queries[] = $query;
-        update_option( 'wp_query_push_queries', $all_queries );
-        $new_query_id = count( $all_queries ) - 1;
+        $new_query_id = $this->add_new_query( $query );
+        if ( !$new_query_id ) {
+            return False;
+        }
 
         // schedule cronjob
         wp_schedule_event( $start_dt, $interval, 'wpquerypush_cron_hook', [ $connection_id, $new_query_id ] );
@@ -312,7 +325,7 @@ class WP_Query_Push_Endpoints
             return wp_send_json([ "error" => "Bad Request" ], 400);
         }
         // process task (manual)
-        $res = WP_Query_Push::instance()->process_task( $connection_id, $query ) ;
+        $res = WP_Query_Push::instance()->process_task( $connection_id, $query );
         $response_data = $res['response_data'];
         $errors = $res['errors'];
         $status = $res['status'];

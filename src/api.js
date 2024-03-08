@@ -16,6 +16,20 @@ export const runQuery = async({ query }) => {
   };
 };
 
+export const deleteQuery = async(query_id) => {
+  const url = `${BASE_URL}/delete-query`;
+  const body = JSON.stringify({ 'id': query_id });
+  try {
+    return post(url, body);
+  } catch(error) {
+    console.error(error);
+    return {
+      data: null,
+      error
+    };
+  };
+};
+
 export const scheduleTask = async(data) => {
   const url = `${BASE_URL}/schedule-task`;
   const body = JSON.stringify(data);

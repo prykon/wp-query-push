@@ -96,6 +96,14 @@ class WP_Query_Push_Endpoints
         );
 
         register_rest_route(
+            $namespace, '/delete-query', [
+                'methods' => 'POST',
+                'callback' => [ $this, 'handle_delete_query' ],
+                'permission_callback' => [ $this, 'nonce_check' ],
+            ]
+        );
+
+        register_rest_route(
             $namespace, '/connections', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'handle_get_connections' ],
@@ -306,6 +314,22 @@ class WP_Query_Push_Endpoints
         }
         global $wpdb;
         $table_name = $wpdb->prefix . WP_Query_Push::instance()->TABLE_NAME_CONNECTIONS;
+        $wpdb->delete(
+            $table_name,
+            [ 'id' => $id ],
+            [ "%d" ]
+        );
+        return wp_send_json( null, 204 );
+    }
+
+    public function handle_delete_query( WP_REST_Request $request ) {
+        $params = $request->get_params();
+        $id = $request->get_param( 'id' );
+        if ( empty( $id ) ) {
+            return wp_send_json( [ 'error' => 'Bad Request' ], 400 );
+        }
+        global $wpdb;
+        $table_name = $wpdb->prefix . WP_Query_Push::instance()->TABLE_NAME_QUERIES;
         $wpdb->delete(
             $table_name,
             [ 'id' => $id ],

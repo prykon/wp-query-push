@@ -1,4 +1,4 @@
-//import { useState } from "react";
+import React, { useEffect } from "react";
 import AceEditor from "react-ace";
 import "ace-builds/src-min-noconflict/ext-language_tools";
 import "ace-builds/src-min-noconflict/mode-mysql";
@@ -25,6 +25,21 @@ const Editor = ({
   const onChange = (newValue) => {
     setQuery(newValue);
   };
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+        if (onSubmit) {
+          onSubmit(query);
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [query, onSubmit]);
   return (
     <main className="w-full">
       <label htmlFor="editor">

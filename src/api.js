@@ -16,9 +16,25 @@ export const runQuery = async({ query }) => {
   };
 };
 
-export const deleteQuery = async(query_id) => {
+export const deleteQuery = async(id) => {
   const url = `${BASE_URL}/delete-query`;
-  const body = JSON.stringify({ 'id': query_id });
+  const body = JSON.stringify({ 'id': id });
+  try {
+    return post(url, body);
+  } catch(error) {
+    console.error(error);
+    return {
+      data: null,
+      error
+    };
+  };
+};
+
+export const updateQuery = async(formData) => {
+  console.log("Updating query with data:", formData);
+  const url = `${BASE_URL}/update-query`;
+  const body = JSON.stringify(formData);
+
   try {
     return post(url, body);
   } catch(error) {

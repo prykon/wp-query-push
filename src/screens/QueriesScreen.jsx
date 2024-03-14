@@ -1,18 +1,20 @@
 import pkg from "@/../package.json";
 import { useMemo } from "react";
 import Table from "@/components/Table";
+import QueriesModal from "@/components/modals/new/QueriesModal";
+
 import useQueries from "@/hooks/use-queries";
 import { DeleteIcon, EditIcon } from "@/components/Icons";
 import Swal from "sweetalert2/dist/sweetalert2.js";
 import withReactContent from 'sweetalert2-react-content'
 import { updateQuery, deleteQuery } from "@/api";
+
 const MySwal = withReactContent(Swal);
 
 const showDeleteQueryModal = async(row) => {
   const existingQueryValues = row?.original;
   if (!existingQueryValues?.id) return;
   const handleDeleteQueryModalSubmit = async() => {
-    console.log(existingQueryValues);
     const res = await deleteQuery(existingQueryValues.id);
     if (res.error) {
       console.error(res.error);
@@ -42,6 +44,33 @@ const showDeleteQueryModal = async(row) => {
   });
 };
 
+const showEditQueryModal = async (row) => {
+  const existingQueryValues = row?.original;
+  if (!existingQueryValues?.id) return;
+  const handleEditQueryModalSubmit = async (formData) => {
+    const updatedData = { ...existingQueryValues, ...formData };
+    const res = await updateQuery(updatedData);
+    if (res.error) {
+      console.error(res.error);
+      return;
+    }
+    MySwal.close();
+  };
+  return MySwal.fire({
+    title: "Edit Query",
+    showCloseButton: true,
+    showConfirmButton: false,
+    showClass: { backdrop: "swal2-noanimation" },
+    hideClass: { backdrop: "swal2-noanimation" },
+    html: (
+      <QueriesModal
+        data={existingQueryValues}
+        onSubmit={handleEditQueryModalSubmit}
+      />
+    ),
+  });
+};
+
 const QueriesScreen = () => {
   const { data, error, isLoading, isValidating } = useQueries();
   const memoizedColumns = useMemo(() => {
@@ -61,7 +90,7 @@ const QueriesScreen = () => {
         <Table
           columns={memoizedColumns}
           data={memoizedData}
-          //actionButtons={<DownloadButton />}
+
           rowActionButtons={[
             {
               render: (row) => (

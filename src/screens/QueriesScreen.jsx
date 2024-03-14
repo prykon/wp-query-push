@@ -1,4 +1,3 @@
-import pkg from "@/../package.json";
 import { useMemo } from "react";
 import Table from "@/components/Table";
 import QueriesModal from "@/components/modals/new/QueriesModal";
@@ -72,7 +71,7 @@ const showEditQueryModal = async (row) => {
 };
 
 const QueriesScreen = () => {
-  const { data, error, isLoading, isValidating } = useQueries();
+  const { data } = useQueries();
   const memoizedColumns = useMemo(() => {
     if (data?.length > 0) {
       return Object?.keys(data?.[0])?.map((key) => {

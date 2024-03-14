@@ -31,7 +31,6 @@ export const deleteQuery = async(id) => {
 };
 
 export const updateQuery = async(formData) => {
-  console.log("Updating query with data:", formData);
   const url = `${BASE_URL}/update-query`;
   const body = JSON.stringify(formData);
 

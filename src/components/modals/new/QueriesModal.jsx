@@ -4,9 +4,7 @@ const QueriesModal = ({ data, onSubmit }) => {
   const { register, handleSubmit, formState: { errors } } = useForm();
 
   const handleFormSubmit = async (formData) => {
-    // Call the onSubmit function with the updated query value
     const updatedData = { ...data, query: formData.query };
-    console.log('updated data:', updatedData);
     await onSubmit(updatedData);
   };
 

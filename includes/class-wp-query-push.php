@@ -39,8 +39,8 @@ class WP_Query_Push
     private function get_query( $query_id ) {
         global $wpdb;
         $table_name =  $wpdb->prefix . $this->TABLE_NAME_QUERIES;
-        $query = $wpdb->get_row(
-            $wpdb->prepare( "SELECT * FROM {$table_name} WHERE id = %d", $query_id )
+        $query = $wpdb->get_var(
+            $wpdb->prepare( "SELECT query FROM $table_name WHERE id = %d", $query_id )
         );
         return $query;
     }
@@ -216,6 +216,7 @@ class WP_Query_Push
         $sql = "CREATE TABLE {$table_name} (
             id INT NOT NULL AUTO_INCREMENT,
             query TEXT NOT NULL,
+            id_connection INT NOT NULL,
             PRIMARY KEY (id)
         )
         COLLATE {$wpdb_collate}";

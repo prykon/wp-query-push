@@ -171,13 +171,14 @@ class WP_Query_Push_Endpoints
         return wp_send_json( $rs, 200 );
     }
 
-    private function add_new_query( $query ) {
+    private function add_new_query( $query, $connection_id ) {
         global $wpdb;
         $table_name =  $wpdb->prefix . WP_Query_Push::instance()->TABLE_NAME_QUERIES;
         $result = $wpdb->insert(
             $table_name,
             array(
                 'query' => $query,
+                'id_connection' => $connection_id,
             )
         );
 
@@ -195,7 +196,10 @@ class WP_Query_Push_Endpoints
     }
 
     public function handle_get_logs( WP_REST_Request $request ) {
-        return $this->select_star( WP_Query_Push::instance()->TABLE_NAME_LOGS );
+        global $wpdb;
+        $table_name = $wpdb->prefix . WP_Query_Push::instance()->TABLE_NAME_LOGS;
+        $query = "SELECT * FROM $table_name ORDER BY id DESC";
+        return $this->run_query_json( $query );
     }
 
     public function handle_get_connections( WP_REST_Request $request ) {
@@ -206,8 +210,15 @@ class WP_Query_Push_Endpoints
         return $this->select_star( WP_Query_Push::instance()->TABLE_NAME_SCHEDULED_TASKS );
     }
 
-    public function handle_get_queries( WP_REST_Request $request ) {
-        return $this->select_star( WP_Query_Push::instance()->TABLE_NAME_QUERIES );
+    public function handle_get_queries() {
+        global $wpdb;
+        $queries_table = $wpdb->prefix . WP_Query_Push::instance()->TABLE_NAME_QUERIES;
+        $connections_table = $wpdb->prefix . WP_Query_Push::instance()->TABLE_NAME_CONNECTIONS;
+        $query = "SELECT q.id, q.query, c.name as connection_name
+                    FROM $queries_table q
+                    INNER JOIN $connections_table c
+                    ON q.id_connection = c.id";
+        return $this->run_query_json( $query );
     }
 
     public function handle_show_tables( WP_REST_Request $request ) {
@@ -242,7 +253,7 @@ class WP_Query_Push_Endpoints
             $start_dt = strtotime( $start_dt );
         }
 
-        $new_query_id = $this->add_new_query( $query );
+        $new_query_id = $this->add_new_query( $query, $connection_id );
         if ( !$new_query_id ) {
             return False;
         }

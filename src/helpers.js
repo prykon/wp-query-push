@@ -54,8 +54,7 @@ export const post = async(url, body) => {
     headers,
     body
   });
-  // HTTP 200 bc we are at least returning the new ID
-  if (res.status === 200) {
+  if (res?.ok) {
     const data = await res.json();
     return {
       data,

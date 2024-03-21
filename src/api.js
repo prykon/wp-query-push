@@ -17,7 +17,7 @@ export const runQuery = async({ query }) => {
 };
 
 export const deleteQuery = async(id) => {
-  const url = `${BASE_URL}/query/${id}`;
+  const url = `${BASE_URL}/queries/${id}`;
   try {
     return delet(url);
   } catch(error) {
@@ -30,11 +30,11 @@ export const deleteQuery = async(id) => {
 };
 
 export const updateQuery = async(formData) => {
-  const url = `${BASE_URL}/update-query`;
+  const url = `${BASE_URL}/queries`;
   const body = JSON.stringify(formData);
 
   try {
-    return post(url, body);
+    return put(url, body);
   } catch(error) {
     console.error(error);
     return {

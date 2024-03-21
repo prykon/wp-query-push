@@ -32,14 +32,6 @@ class WP_Query_Push_Endpoints
         $namespace = 'wp-query-push/v1';
 
         register_rest_route(
-            $namespace, '/query', [
-                'methods' => 'POST',
-                'callback' => [ $this , 'handle_query' ],
-                'permission_callback' => [ $this, 'can_access_api' ],
-            ]
-        );
-
-        register_rest_route(
             $namespace, '/send', [
                 'methods' => 'POST',
                 'callback' => [ $this , 'handle_send' ],
@@ -88,7 +80,7 @@ class WP_Query_Push_Endpoints
         );
 
         register_rest_route(
-            $namespace, '/get-queries', [
+            $namespace, '/queries', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'handle_get_queries' ],
                 'permission_callback' => [ $this, 'nonce_check' ],
@@ -96,8 +88,24 @@ class WP_Query_Push_Endpoints
         );
 
         register_rest_route(
-            $namespace, '/delete-query', [
+            $namespace, '/queries', [
+                'methods' => 'PUT',
+                'callback' => [ $this, 'handle_put_query' ],
+                'permission_callback' => [ $this, 'nonce_check' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace, '/queries', [
                 'methods' => 'POST',
+                'callback' => [ $this, 'handle_query' ],
+                'permission_callback' => [ $this, 'can_access_api' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace, '/queries/(?P<id>\d+)', [
+                'methods' => 'DELETE',
                 'callback' => [ $this, 'handle_delete_query' ],
                 'permission_callback' => [ $this, 'nonce_check' ],
             ]
@@ -171,7 +179,7 @@ class WP_Query_Push_Endpoints
         return wp_send_json( $rs, 200 );
     }
 
-    private function add_new_query( $query, $connection_id ) {
+    public static function add_new_query( $query, $connection_id ) {
         global $wpdb;
         $table_name =  $wpdb->prefix . WP_Query_Push::instance()->TABLE_NAME_QUERIES;
         $result = $wpdb->insert(
@@ -219,6 +227,33 @@ class WP_Query_Push_Endpoints
                     INNER JOIN $connections_table c
                     ON q.id_connection = c.id";
         return $this->run_query_json( $query );
+    }
+
+    public function handle_put_query( WP_REST_Request $request ) {
+        $id = $request->get_param( 'id' );
+        $query = $request->get_param( 'query' );
+        if ( empty( $id ) || empty( $query ) ) {
+            return wp_send_json( [ 'error' => 'Bad Request' ], 400 );
+        }
+        // parse and validate request
+        $body = $request->get_body();
+        $data = json_decode( $body, true );
+        $query_id = $data['id'];
+        $query = $data['query'];
+        // validate request
+        if ( empty( $query_id ) ) {
+            return wp_send_json( [ 'error' => 'Bad Request' ], 400 );
+        }
+        global $wpdb;
+        $table_name = $wpdb->prefix . WP_Query_push::instance()->TABLE_NAME_QUERIES;
+        $wpdb->update(
+            $table_name,
+            [ 'query' => $query ],
+            [ 'id' => $query_id ],
+            [ '%s' ],
+            [ '%d' ]
+        );
+        return wp_send_json( null, 204 );
     }
 
     public function handle_show_tables( WP_REST_Request $request ) {
@@ -270,8 +305,8 @@ class WP_Query_Push_Endpoints
         $data = json_decode( $body, true );
         $name = $data['name'];
         $type = $data['type'];
-        $requestData = $data['requestData'];
-        $url = $requestData['url'];
+        $request_data = $data['request_data'];
+        $url = $request_data['url'];
 
         if ( empty( $name ) || empty( $type ) || empty( $url ) ) {
             return wp_send_json([ "error" => "Bad Request" ], 400);
@@ -287,7 +322,7 @@ class WP_Query_Push_Endpoints
             [
             'name' => $name,
             'type' => $type,
-            'config' => json_encode($requestData),
+            'config' => json_encode( $request_data ),
             ],
             [ "%s", "%s", "%s" ]
         );
@@ -296,7 +331,7 @@ class WP_Query_Push_Endpoints
 
     public function handle_put_connection( WP_REST_Request $request ) {
         $id = $request->get_param( 'id' );
-        if ( empty($id) ) {
+        if ( empty( $id ) ) {
             return wp_send_json( [ 'error' => 'Bad Request' ], 400 );
         }
         // parse and validate request
@@ -304,8 +339,8 @@ class WP_Query_Push_Endpoints
         $data = json_decode( $body, true );
         $name = $data['name'];
         $type = $data['type'];
-        $requestData = $data['requestData'];
-        $url = $requestData['url'];
+        $request_data = $data['request_data'];
+        $url = $request_data['url'];
         // validate request
         if ( empty( $name ) || empty( $type ) || empty( $url ) ) {
             return wp_send_json( [ 'error' => 'Bad Request' ], 400 );
@@ -317,13 +352,13 @@ class WP_Query_Push_Endpoints
             [
                 'name' => $name,
                 'type' => $type,
-                'config' => json_encode($requestData),
+                'config' => json_encode( $request_data ),
             ],
             [ 'id' => $id ],
             [ "%s", "%s", "%s" ],
             [ "%d" ]
         );
-        return wp_send_json(null, 204);
+        return wp_send_json( null, 204 );
     }
 
     public function handle_delete_connection( WP_REST_Request $request ) {
@@ -353,7 +388,7 @@ class WP_Query_Push_Endpoints
             [ 'id' => $id ],
             [ "%d" ]
         );
-        return true;
+        return wp_send_json( null, 204 );
     }
     public function handle_update_query( WP_REST_Request $request ) {
         $body = $request->get_body();
@@ -361,7 +396,6 @@ class WP_Query_Push_Endpoints
         $id = $data['id'];
         $query = $data['query'];
 
-        // validate request
         if ( empty( $query ) || empty( $id ) ) {
             return wp_send_json([ "error" => "Bad Request" ], 400);
         }

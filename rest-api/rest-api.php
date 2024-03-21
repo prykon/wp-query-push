@@ -305,7 +305,7 @@ class WP_Query_Push_Endpoints
         $data = json_decode( $body, true );
         $name = $data['name'];
         $type = $data['type'];
-        $request_data = $data['request_data'];
+        $request_data = $data['requestData'];
         $url = $request_data['url'];
 
         if ( empty( $name ) || empty( $type ) || empty( $url ) ) {
@@ -339,7 +339,7 @@ class WP_Query_Push_Endpoints
         $data = json_decode( $body, true );
         $name = $data['name'];
         $type = $data['type'];
-        $request_data = $data['request_data'];
+        $request_data = $data['requestData'];
         $url = $request_data['url'];
         // validate request
         if ( empty( $name ) || empty( $type ) || empty( $url ) ) {

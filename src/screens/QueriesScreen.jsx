@@ -10,38 +10,38 @@ import { updateQuery, deleteQuery } from "@/api";
 
 const MySwal = withReactContent(Swal);
 
-// const showDeleteQueryModal = async(row) => {
-//   const existingQueryValues = row?.original;
-//   if (!existingQueryValues?.id) return;
-//   const handleDeleteQueryModalSubmit = async() => {
-//     const res = await deleteQuery(existingQueryValues.id);
-//     if (res.error) {
-//       console.error(res.error);
-//       // TODO
-//       //toastErrors(res.error);
-//       return;
-//     };
-//     MySwal.close();
-//   };
-//   return MySwal.fire({
-//     title: 'Delete Query?',
-//     showCloseButton: true,
-//     showConfirmButton: false,
-//     showClass: { backdrop: 'swal2-noanimation' },
-//     hideClass: { backdrop: 'swal2-noanimation' },
-//     html: (
-//       <div className="flex flex-col items-center justify-center">
-//         <p className="mb-4">{`Are you sure you want to delete query id: "${existingQueryValues?.id}"?`}</p>
-//         <button
-//           className="px-4 py-2 text-white bg-red-500 rounded hover:bg-red-600"
-//           onClick={handleDeleteQueryModalSubmit}
-//         >
-//           Delete
-//         </button>
-//       </div>
-//     ),
-//   });
-// };
+const showDeleteQueryModal = async(row) => {
+  const existingQueryValues = row?.original;
+  if (!existingQueryValues?.id) return;
+  const handleDeleteQueryModalSubmit = async() => {
+    const res = await deleteQuery(existingQueryValues.id);
+    if (res.error) {
+      console.error(res.error);
+      // TODO
+      //toastErrors(res.error);
+      return;
+    };
+    MySwal.close();
+  };
+  return MySwal.fire({
+    title: 'Delete Query?',
+    showCloseButton: true,
+    showConfirmButton: false,
+    showClass: { backdrop: 'swal2-noanimation' },
+    hideClass: { backdrop: 'swal2-noanimation' },
+    html: (
+      <div className="flex flex-col items-center justify-center">
+        <p className="mb-4">{`Are you sure you want to delete query id: "${existingQueryValues?.id}"?`}</p>
+        <button
+          className="px-4 py-2 text-white bg-red-500 rounded hover:bg-red-600"
+          onClick={handleDeleteQueryModalSubmit}
+        >
+          Delete
+        </button>
+      </div>
+    ),
+  });
+};
 
 const showEditQueryModal = async (row) => {
   const existingQueryValues = row?.original;
@@ -98,16 +98,16 @@ const QueriesScreen = () => {
                 </button>
               ),
             },
-            // {
-            //   render: (row) => (
-            //     <button
-            //       className="text-red-500 hover:text-red-600"
-            //       onClick={() => showDeleteQueryModal(row)}
-            //     >
-            //       <DeleteIcon />
-            //     </button>
-            //   ),
-            // },
+            {
+              render: (row) => (
+                <button
+                  className="text-red-500 hover:text-red-600"
+                  onClick={() => showDeleteQueryModal(row)}
+                >
+                  <DeleteIcon />
+                </button>
+              ),
+            },
           ]}
         />
       ) : (

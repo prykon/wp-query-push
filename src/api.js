@@ -3,7 +3,7 @@ import { post, put, delet } from "@/helpers";
 import { BASE_URL } from "@/constants";
 
 export const runQuery = async({ query }) => {
-  const url = `${BASE_URL}/query`;
+  const url = `${BASE_URL}/queries`;
   const body = JSON.stringify({ statement: query });
   try {
     return post(url, body);
@@ -16,19 +16,18 @@ export const runQuery = async({ query }) => {
   };
 };
 
-// export const deleteQuery = async(id) => {
-//   const url = `${BASE_URL}/delete-query`;
-//   const body = JSON.stringify({ 'id': id });
-//   try {
-//     return post(url, body);
-//   } catch(error) {
-//     console.error(error);
-//     return {
-//       data: null,
-//       error
-//     };
-//   };
-// };
+export const deleteQuery = async(id) => {
+  const url = `${BASE_URL}/query/${id}`;
+  try {
+    return delet(url);
+  } catch(error) {
+    console.error(error);
+    return {
+      data: null,
+      error
+    };
+  };
+};
 
 export const updateQuery = async(formData) => {
   const url = `${BASE_URL}/update-query`;

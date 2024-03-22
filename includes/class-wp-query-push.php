@@ -36,7 +36,7 @@ class WP_Query_Push
         return $connection;
     }
 
-    private function get_query( $query_id ) {
+    public function get_query( $query_id ) {
         global $wpdb;
         $table_name =  $wpdb->prefix . $this->TABLE_NAME_QUERIES;
         $query = $wpdb->get_var(

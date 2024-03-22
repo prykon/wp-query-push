@@ -112,6 +112,14 @@ class WP_Query_Push_Endpoints
         );
 
         register_rest_route(
+            $namespace, '/cron-events', [
+                'methods' => 'GET',
+                'callback' => [ $this, 'handle_get_cron_events' ],
+                'permission_callback' => [ $this, 'nonce_check' ],
+            ]
+        );
+
+        register_rest_route(
             $namespace, '/connections', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'handle_get_connections' ],
@@ -246,6 +254,35 @@ class WP_Query_Push_Endpoints
             [ '%d' ]
         );
         return wp_send_json( null, 204 );
+    }
+
+    public function handle_get_cron_events() {
+        $cron_events = [];
+        $cron_options = get_option( 'cron' );
+        foreach( $cron_options as $cron_key => $cron_details ) {
+            if ( !is_int( $cron_details ) ) {
+                foreach( $cron_details as $c_key => $c_value ) {
+                    if ( $c_key == 'wpquerypush_cron_hook' ) {
+                        if ( !empty( $c_value ) ) {
+                            $new_row = [];
+                            foreach( $c_value as $k => $v ) {
+                                if( isset( $v['args'] ) ) {
+                                    $new_row['key'] = $cron_key;
+                                    $new_row['schedule'] = $v['schedule'];
+                                    $new_row['query'] = $v['args'][1];
+                                    if ( is_int( $new_row['query'] ) ) {
+                                        $new_row['query'] = WP_Query_Push::instance()->get_query( $new_row['query'] );
+                                    }
+                                    $new_row['connection_id'] = $v['args'][0];
+                                    $cron_events[] = $new_row;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return wp_send_json( $cron_events, 200 );
     }
 
     public function handle_show_tables( WP_REST_Request $request ) {

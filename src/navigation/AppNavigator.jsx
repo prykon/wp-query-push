@@ -5,6 +5,7 @@ import HomeScreen from "@/screens/HomeScreen";
 import EditorScreen from "@/screens/EditorScreen";
 import QueriesScreen from "@/screens/QueriesScreen";
 import ConnectionsScreen from "@/screens/ConnectionsScreen";
+import CronEventsScreen from "@/screens/CronEventsScreen";
 import LogsScreen from "@/screens/LogsScreen";
 import SettingsScreen from "@/screens/SettingsScreen";
 
@@ -16,6 +17,7 @@ const AppNavigator = () => (
       <Tab>Editor</Tab>
       <Tab>Queries</Tab>
       <Tab>Connections</Tab>
+      <Tab>Cron Events</Tab>
       <Tab>Logs</Tab>
       <Tab>Settings</Tab>
     </TabList>
@@ -30,6 +32,9 @@ const AppNavigator = () => (
     </TabPanel>
     <TabPanel>
       <ConnectionsScreen />
+    </TabPanel>
+    <TabPanel>
+      <CronEventsScreen />
     </TabPanel>
     <TabPanel>
       <LogsScreen />

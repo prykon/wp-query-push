@@ -66,11 +66,11 @@ class WP_Query_Push
         return $wpdb->insert_id;
     }
 
-    public function process_task( $connection_id, $query_id = null ) {
+    public function process_task( $connection_id, $query = null ) {
         global $wpdb;
 
-        if ( $query_id ) {
-            $query = $this->get_query( $query_id );
+        if ( is_int( $query ) ) {
+            $query = $this->get_query( $query );
         }
 
         $connection = $this->get_connection( $connection_id );

@@ -112,14 +112,6 @@ class WP_Query_Push_Endpoints
         );
 
         register_rest_route(
-            $namespace, '/update-query', [
-                'methods' => 'POST',
-                'callback' => [ $this, 'handle_update_query' ],
-                'permission_callback' => [ $this, 'nonce_check' ],
-            ]
-        );
-
-        register_rest_route(
             $namespace, '/connections', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'handle_get_connections' ],

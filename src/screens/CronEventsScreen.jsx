@@ -1,20 +1,19 @@
 import { useMemo } from "react";
 import Table from "@/components/Table";
-import QueriesModal from "@/components/modals/new/QueriesModal";
-
-import useQueries from "@/hooks/use-queries";
+import CronEventsModal from "@/components/modals/new/CronEventsModal";
 import { DeleteIcon, EditIcon } from "@/components/Icons";
 import Swal from "sweetalert2/dist/sweetalert2.js";
 import withReactContent from 'sweetalert2-react-content'
-import { updateQuery, deleteQuery } from "@/api";
+import useCronEvents from "@/hooks/use-cron-events";
+import { updateCronEvent, deleteCronEvent } from "@/api";
 
 const MySwal = withReactContent(Swal);
 
-const showDeleteQueryModal = async(row) => {
-  const existingQueryValues = row?.original;
-  if (!existingQueryValues?.query_id) return;
-  const handleDeleteQueryModalSubmit = async() => {
-    const res = await deleteQuery(existingQueryValues);
+const showDeleteCronEventModal = async(row) => {
+  const existingCronEventValues = row?.original;
+  if (!existingCronEventValues?.id) return;
+  const handleDeleteCronEventModalSubmit = async() => {
+    const res = await deleteCronEvent(existingCronEventValues.id);
     if (res.error) {
       console.error(res.error);
       // TODO
@@ -24,19 +23,17 @@ const showDeleteQueryModal = async(row) => {
     MySwal.close();
   };
   return MySwal.fire({
-    title: 'Delete Query?',
+    title: 'Delete Cron Event?',
     showCloseButton: true,
     showConfirmButton: false,
     showClass: { backdrop: 'swal2-noanimation' },
     hideClass: { backdrop: 'swal2-noanimation' },
     html: (
       <div className="flex flex-col items-center justify-center">
-        <p className="mb-4">Are you sure you want to delete this query?</p>
-        <p className="mb-4">name: "{existingQueryValues?.name}"</p>
-        <p className="mb-4">id: "{existingQueryValues?.id}"</p>
+        <p className="mb-4">{`Are you sure you want to delete cron event: "${existingCronEventValues?.id}"?`}</p>
         <button
           className="px-4 py-2 text-white bg-red-500 rounded hover:bg-red-600"
-          onClick={handleDeleteQueryModalSubmit}
+          onClick={handleDeleteCronEventModalSubmit}
         >
           Delete
         </button>
@@ -45,12 +42,12 @@ const showDeleteQueryModal = async(row) => {
   });
 };
 
-const showEditQueryModal = async (row) => {
-  const existingQueryValues = row?.original;
-  if (!existingQueryValues?.id) return;
-  const handleEditQueryModalSubmit = async (formData) => {
-    const updatedData = { ...existingQueryValues, ...formData };
-    const res = await updateQuery(updatedData);
+const showEditCronEventModal = async (row) => {
+  const existingCronEventValues = row?.original;
+  if (!existingCronEventValues?.id) return;
+  const handleEditCronEventModalSubmit = async (formData) => {
+    const updatedData = { ...existingCronEventValues, ...formData };
+    const res = await updateCronEvent(updatedData);
     if (res.error) {
       console.error(res.error);
       return;
@@ -58,22 +55,22 @@ const showEditQueryModal = async (row) => {
     MySwal.close();
   };
   return MySwal.fire({
-    title: "Edit Query",
+    title: "Edit Cron Event",
     showCloseButton: true,
     showConfirmButton: false,
     showClass: { backdrop: "swal2-noanimation" },
     hideClass: { backdrop: "swal2-noanimation" },
     html: (
-      <QueriesModal
-        data={existingQueryValues}
-        onSubmit={handleEditQueryModalSubmit}
+      <CronEventsModal
+        data={existingCronEventValues}
+        onSubmit={handleEditCronEventModalSubmit}
       />
     ),
   });
 };
 
-const QueriesScreen = () => {
-  const { data } = useQueries();
+const CronEventsScreen = () => {
+  const { data } = useCronEvents();
   const memoizedColumns = useMemo(() => {
     if (data?.length > 0) {
       return Object?.keys(data?.[0])?.map((key) => {
@@ -95,17 +92,15 @@ const QueriesScreen = () => {
           rowActionButtons={[
             {
               render: (row) => (
-                <button onClick={() => showEditQueryModal(row)}>
+                <button onClick={() => showEditCronEventModal(row)}>
                   <EditIcon /> 
                 </button>
               ),
             },
             {
               render: (row) => (
-                <button
-                  className="text-red-500 hover:text-red-600"
-                  onClick={() => showDeleteQueryModal(row)}
-                >
+                <button onClick={() => showDeleteCronEventModal(row)}
+                  className="text-red-500 hover:text-red-600">
                   <DeleteIcon />
                 </button>
               ),
@@ -114,10 +109,10 @@ const QueriesScreen = () => {
         />
       ) : (
         <div className="flex items-center justify-center h-96">
-          <h1>No queries to display</h1>
+          <h1>No cron events to display</h1>
         </div>
       )}
     </section>
   );
 };
-export default QueriesScreen;
+export default CronEventsScreen;

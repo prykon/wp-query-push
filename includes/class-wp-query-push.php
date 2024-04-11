@@ -215,6 +215,7 @@ class WP_Query_Push
         $wpdb_collate = $wpdb->collate;
         $sql = "CREATE TABLE {$table_name} (
             id INT NOT NULL AUTO_INCREMENT,
+            name VARCHAR(255),
             query TEXT NOT NULL,
             id_connection INT NOT NULL,
             PRIMARY KEY (id)

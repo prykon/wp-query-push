@@ -4,7 +4,7 @@ const QueriesModal = ({ data, onSubmit }) => {
   const { register, handleSubmit, formState: { errors } } = useForm();
 
   const handleFormSubmit = async (formData) => {
-    const updatedData = { ...data, query: formData.query };
+    const updatedData = { ...data, query: formData.query, name: formData.name };
     await onSubmit(updatedData);
   };
 
@@ -14,6 +14,15 @@ const QueriesModal = ({ data, onSubmit }) => {
       className="flex flex-col space-y-4"
     >
       <label htmlFor="query">Query</label>
+      <input
+        id="name"
+        name="name"
+        type="text"
+        placeholder="Name"
+        defaultValue={data.name}
+        {...register("name")}
+        className="modalFields p-2"
+      />
       <textarea
         id="query"
         name="query"

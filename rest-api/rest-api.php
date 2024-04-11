@@ -83,15 +83,15 @@ class WP_Query_Push_Endpoints
             $namespace, '/queries', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'handle_get_queries' ],
-                'permission_callback' => [ $this, 'nonce_check' ],
+                'permission_callback' => [ $this, 'can_access_api' ],
             ]
         );
 
         register_rest_route(
-            $namespace, '/queries', [
-                'methods' => 'PUT',
-                'callback' => [ $this, 'handle_put_query' ],
-                'permission_callback' => [ $this, 'nonce_check' ],
+            $namespace, '/update-query/(?P<id>[\d]+)', [
+                'methods' => 'POST',
+                'callback' => [ $this, 'handle_update_query' ],
+                'permission_callback' => [ $this, 'can_access_api' ],
             ]
         );
 
@@ -104,10 +104,10 @@ class WP_Query_Push_Endpoints
         );
 
         register_rest_route(
-            $namespace, '/queries/(?P<id>\d+)', [
-                'methods' => 'DELETE',
+            $namespace, '/delete-query/(?P<id>[\d]+)', [
+                'methods' => 'POST',
                 'callback' => [ $this, 'handle_delete_query' ],
-                'permission_callback' => [ $this, 'nonce_check' ],
+                'permission_callback' => [ $this, 'can_access_api' ],
             ]
         );
 
@@ -115,7 +115,23 @@ class WP_Query_Push_Endpoints
             $namespace, '/cron-events', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'handle_get_cron_events' ],
-                'permission_callback' => [ $this, 'nonce_check' ],
+                'permission_callback' => [ $this, 'can_access_api' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace, '/update-cron-event/(?P<id>[\d]+)', [
+                'methods' => 'POST',
+                'callback' => [ $this, 'handle_update_cron_events' ],
+                'permission_callback' => [ $this, 'can_access_api' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace, '/delete-cron-event/(?P<id>[\d]+)', [
+                'methods' => 'POST',
+                'callback' => [ $this, 'handle_delete_cron_event' ],
+                'permission_callback' => [ $this, 'can_access_api' ],
             ]
         );
 
@@ -179,13 +195,17 @@ class WP_Query_Push_Endpoints
         return wp_send_json( $rs, 200 );
     }
 
-    public static function add_new_query( $query, $connection_id ) {
+    public static function add_new_query( $query, $connection_id, $name = null ) {
         global $wpdb;
         $table_name =  $wpdb->prefix . WP_Query_Push::instance()->TABLE_NAME_QUERIES;
+        if ( is_null( $name ) ) {
+            $name = 'untitled query';
+        }
         $result = $wpdb->insert(
             $table_name,
             array(
                 'query' => $query,
+                'name' => $name,
                 'id_connection' => $connection_id,
             )
         );
@@ -222,7 +242,7 @@ class WP_Query_Push_Endpoints
         global $wpdb;
         $queries_table = $wpdb->prefix . WP_Query_Push::instance()->TABLE_NAME_QUERIES;
         $connections_table = $wpdb->prefix . WP_Query_Push::instance()->TABLE_NAME_CONNECTIONS;
-        $query = "SELECT q.id, q.query, c.name as connection_name
+        $query = "SELECT q.id as id, q.query, q.name, c.name as connection_name
                     FROM $queries_table q
                     INNER JOIN $connections_table c
                     ON q.id_connection = c.id";
@@ -232,24 +252,18 @@ class WP_Query_Push_Endpoints
     public function handle_put_query( WP_REST_Request $request ) {
         $id = $request->get_param( 'id' );
         $query = $request->get_param( 'query' );
+        $name = $request->get_param( 'name' );
         if ( empty( $id ) || empty( $query ) ) {
-            return wp_send_json( [ 'error' => 'Bad Request' ], 400 );
-        }
-        // parse and validate request
-        $body = $request->get_body();
-        $data = json_decode( $body, true );
-        $query_id = $data['id'];
-        $query = $data['query'];
-        // validate request
-        if ( empty( $query_id ) ) {
             return wp_send_json( [ 'error' => 'Bad Request' ], 400 );
         }
         global $wpdb;
         $table_name = $wpdb->prefix . WP_Query_push::instance()->TABLE_NAME_QUERIES;
         $wpdb->update(
             $table_name,
+            [ 'name' => $name ],
             [ 'query' => $query ],
-            [ 'id' => $query_id ],
+            [ 'id' => $id ],
+            [ '%s' ],
             [ '%s' ],
             [ '%d' ]
         );
@@ -267,13 +281,19 @@ class WP_Query_Push_Endpoints
                             $new_row = [];
                             foreach( $c_value as $k => $v ) {
                                 if( isset( $v['args'] ) ) {
-                                    $new_row['key'] = $cron_key;
-                                    $new_row['schedule'] = $v['schedule'];
+                                    $new_row['id'] = $cron_key;
+                                    $new_row['interval'] = $v['schedule'];
+                                    $new_row['query_id'] = null;
+                                    $new_row['query_name'] = null;
                                     $new_row['query'] = $v['args'][1];
                                     if ( is_int( $new_row['query'] ) ) {
+                                        $new_row['query_id'] = $v['args'][1];
                                         $new_row['query'] = WP_Query_Push::instance()->get_query( $new_row['query'] );
                                     }
-                                    $new_row['connection_id'] = $v['args'][0];
+                                    $connection_id = $v['args'][0];
+                                    $new_row['connection_id'] = $connection_id;
+                                    $new_row['connection_name'] = $this->get_connection_name( $connection_id );
+                                    $new_row['query_name'] = $this->get_query_name( $new_row['query_id'] );
                                     $cron_events[] = $new_row;
                                 }
                             }
@@ -285,12 +305,65 @@ class WP_Query_Push_Endpoints
         return wp_send_json( $cron_events, 200 );
     }
 
+    public static function get_connection_name( $id ) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . WP_Query_Push::instance()->TABLE_NAME_CONNECTIONS;
+        $result = $wpdb->get_var( $wpdb->prepare( "SELECT name FROM $table_name WHERE id = %d", $id ) );
+        return $result;
+    }
+
+    public static function get_query_name( $id ) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . WP_Query_Push::instance()->TABLE_NAME_QUERIES;
+        $result = $wpdb->get_var( $wpdb->prepare( "SELECT name FROM $table_name WHERE id = %d", $id ) );
+        return $result;
+    }
+
+    public function handle_update_cron_events( WP_REST_Request $request ) {
+        if ( !isset( $request['id'] ) || empty( $request['id'] ) ) {
+            return wp_send_json( [ 'error' => 'Bad Request' ], 400 );
+        }
+        $id = $request['id'];
+        $interval = $request['interval'];
+        $connection_id = $request['connection_id'];
+        $query_id = $request['query'];
+
+        $schedule = wp_get_schedules();
+        $schedule = $schedule[$interval]['interval'];
+
+        $cron_events = get_option( 'cron' );
+        foreach( $cron_events[$id]['wpquerypush_cron_hook'] as $cron_key => $cron_value ) {
+            $cron_events[$id]['wpquerypush_cron_hook'][$cron_key] = [
+                'schedule' => $interval,
+                'args' => [
+                    (int)$connection_id,
+                    (int)$query_id,
+                ],
+                'interval' => (int)$schedule,
+            ];
+        }
+        update_option( 'cron', $cron_events );
+        return wp_send_json( null, 200 );
+    }
+
+    public function handle_delete_cron_event( WP_REST_Request $request ) {
+
+        if ( !isset( $request['id'] ) || empty( $request['id'] ) ) {
+            return wp_send_json( [ 'error' => 'Bad Request' ], 400 );
+        }
+        $id = $request['id'];
+        $cron_events = get_option( 'cron' );
+        unset( $cron_events[$id] );
+        update_option( 'cron', $cron_events );
+        return wp_send_json( null, 200 );
+    }
+
     public function handle_show_tables( WP_REST_Request $request ) {
         $query = "SHOW TABLES;";
         return $this->run_query_json( $query );
     }
 
-    public function handle_get_intervals( WP_REST_Request $request ) {
+    public function handle_get_intervals() {
         $intervals = wp_get_schedules();
         return wp_send_json( $intervals, 200 );
     }
@@ -406,10 +479,10 @@ class WP_Query_Push_Endpoints
     }
 
     public function handle_delete_query( WP_REST_Request $request ) {
-        $id = $request->get_param( 'id' );
-        if ( empty( $id ) ) {
+        if ( !isset( $request['id'] ) || empty( $request['id'] ) ) {
             return wp_send_json( [ 'error' => 'Bad Request' ], 400 );
         }
+        $id = $request['id'];
         global $wpdb;
         $table_name = $wpdb->prefix . WP_Query_Push::instance()->TABLE_NAME_QUERIES;
         $wpdb->delete(
@@ -417,13 +490,14 @@ class WP_Query_Push_Endpoints
             [ 'id' => $id ],
             [ "%d" ]
         );
-        return wp_send_json( null, 204 );
+        return wp_send_json( null, 200 );
     }
     public function handle_update_query( WP_REST_Request $request ) {
         $body = $request->get_body();
         $data = json_decode( $body, true );
         $id = $data['id'];
         $query = $data['query'];
+        $name = $data['name'];
 
         if ( empty( $query ) || empty( $id ) ) {
             return wp_send_json([ "error" => "Bad Request" ], 400);
@@ -431,8 +505,11 @@ class WP_Query_Push_Endpoints
 
         global $wpdb;
         $table_name = $wpdb->prefix . WP_Query_Push::instance()->TABLE_NAME_QUERIES;
-        $wpdb->update( $table_name, [ 'query' => $query ], [ 'id' => $id ] );
-        return true;
+        $wpdb->update( $table_name, [
+            'query' => $query,
+            'name' => $name,
+        ], [ 'id' => $id ] );
+        return wp_send_json( null, 200 );
     }
 
     public function handle_send( WP_REST_Request $request ) {

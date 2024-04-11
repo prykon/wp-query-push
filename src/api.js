@@ -16,10 +16,11 @@ export const runQuery = async({ query }) => {
   };
 };
 
-export const deleteQuery = async(id) => {
-  const url = `${BASE_URL}/queries/${id}`;
+export const deleteQuery = async(formData) => {
+  const url = `${BASE_URL}/delete-query/${formData.id}`;
+  const body = JSON.stringify(formData);
   try {
-    return delet(url);
+    return post(url, body);
   } catch(error) {
     console.error(error);
     return {
@@ -30,11 +31,25 @@ export const deleteQuery = async(id) => {
 };
 
 export const updateQuery = async(formData) => {
-  const url = `${BASE_URL}/queries`;
+  const url = `${BASE_URL}/update-query/${formData.id}`;
   const body = JSON.stringify(formData);
 
   try {
-    return put(url, body);
+    return post(url, body);
+  } catch(error) {
+    console.error(error);
+    return {
+      data: null,
+      error
+    };
+  };
+};
+
+export const updateCronEvent = async(formData) => {
+  const url = `${BASE_URL}/update-cron-event/${formData.query}`;
+  const body = JSON.stringify(formData);
+  try {
+    return post(url, body);
   } catch(error) {
     console.error(error);
     return {
@@ -122,6 +137,20 @@ export const deleteConnection = async(id) => {
 export const createSchedule = async(data) => {
   const url = `${BASE_URL}/schedules`;
   const body = JSON.stringify(data);
+  try {
+    return post(url, body);
+  } catch(error) {
+    console.error(error);
+    return {
+      data: null,
+      error
+    };
+  };
+};
+
+export const deleteCronEvent = async(id) => {
+  const url = `${BASE_URL}/delete-cron-event/${id}`;
+  const body = JSON.stringify(id);
   try {
     return post(url, body);
   } catch(error) {

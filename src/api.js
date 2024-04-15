@@ -162,6 +162,20 @@ export const deleteCronEvent = async(id) => {
   };
 };
 
+export const runCronEvent = async(data) => {
+  const url = `${BASE_URL}/send`;
+  const body = JSON.stringify(data);
+  try {
+    return post(url, body);
+  } catch(error) {
+    console.error(error);
+    return {
+      data: null,
+      error
+    };
+  };
+};
+
 export const send = async(data) => {
   const url = `${BASE_URL}/send`;
   const body = JSON.stringify(data);

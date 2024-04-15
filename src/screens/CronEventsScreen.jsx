@@ -1,15 +1,15 @@
 import { useMemo } from "react";
 import Table from "@/components/Table";
 import CronEventsModal from "@/components/modals/new/CronEventsModal";
-import { DeleteIcon, EditIcon } from "@/components/Icons";
+import { EditIcon, DeleteIcon, RunIcon } from "@/components/Icons";
 import Swal from "sweetalert2/dist/sweetalert2.js";
 import withReactContent from 'sweetalert2-react-content'
 import useCronEvents from "@/hooks/use-cron-events";
-import { updateCronEvent, deleteCronEvent } from "@/api";
+import { updateCronEvent, deleteCronEvent, runCronEvent } from "@/api";
 
 const MySwal = withReactContent(Swal);
 
-const showDeleteCronEventModal = async(row) => {
+const showDeleteCronEventModal = async (row) => {
   const existingCronEventValues = row?.original;
   if (!existingCronEventValues?.id) return;
   const handleDeleteCronEventModalSubmit = async() => {
@@ -69,6 +69,40 @@ const showEditCronEventModal = async (row) => {
   });
 };
 
+const showRunCronEventModal = async (row) => {
+  const existingCronEventValues = row?.original;
+  if (!existingCronEventValues?.id) return;
+  const handleRunCronEventModalSubmit = async() => {
+    const res = await runCronEvent(existingCronEventValues);
+    if (res.error) {
+      console.error(res.error);
+      // TODO
+      //toastErrors(res.error);
+      return;
+    };
+    MySwal.close();
+  };
+  return MySwal.fire({
+    title: 'Run Cron Event?',
+    showCloseButton: true,
+    showConfirmButton: false,
+    showClass: { backdrop: 'swal2-noanimation' },
+    hideClass: { backdrop: 'swal2-noanimation' },
+    html: (
+      <div className="flex flex-col items-center justify-center">
+        <p className="mb-4">{`Are you sure you want to run cron event: "${existingCronEventValues?.id}"?`}</p>
+        <p className="mb-4">(This will not affect the run schedule)</p>
+        <button
+          className="px-4 py-2 text-white bg-red-500 rounded hover:bg-red-600"
+          onClick={handleRunCronEventModalSubmit}
+        >
+          Run
+        </button>
+      </div>
+    ),
+  });
+};
+
 const CronEventsScreen = () => {
   const { data } = useCronEvents();
   const memoizedColumns = useMemo(() => {
@@ -90,6 +124,13 @@ const CronEventsScreen = () => {
           data={memoizedData}
 
           rowActionButtons={[
+            {
+              render: (row) => (
+                <button onClick={() => showRunCronEventModal(row)}>
+                  <RunIcon />
+                </button>
+              ),
+            },
             {
               render: (row) => (
                 <button onClick={() => showEditCronEventModal(row)}>

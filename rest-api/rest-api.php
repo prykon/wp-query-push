@@ -291,7 +291,7 @@ class WP_Query_Push_Endpoints
                                         $new_row['query'] = WP_Query_Push::instance()->get_query( $new_row['query'] );
                                     }
                                     $connection_id = $v['args'][0];
-                                    $new_row['connection_id'] = $connection_id;
+                                    $new_row['connection'] = $connection_id;
                                     $new_row['connection_name'] = $this->get_connection_name( $connection_id );
                                     $new_row['query_name'] = $this->get_query_name( $new_row['query_id'] );
                                     $cron_events[] = $new_row;

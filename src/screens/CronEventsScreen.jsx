@@ -93,7 +93,7 @@ const showRunCronEventModal = async (row) => {
         <p className="mb-4">{`Are you sure you want to run cron event: "${existingCronEventValues?.id}"?`}</p>
         <p className="mb-4">(This will not affect the run schedule)</p>
         <button
-          className="px-4 py-2 text-white bg-red-500 rounded hover:bg-red-600"
+          className="modalButtons"
           onClick={handleRunCronEventModalSubmit}
         >
           Run

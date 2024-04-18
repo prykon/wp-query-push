@@ -1,6 +1,6 @@
 import { AddButton } from "@/components/buttons/Button";
 
-const Select = ({ id, label, values, register, onAdd }) => {
+const Select = ({ id, label, values, register, onAdd, disabled=false }) => {
   return(
     <>
       {label && <label htmlFor={id}>{label}</label>}
@@ -12,6 +12,7 @@ const Select = ({ id, label, values, register, onAdd }) => {
             "modalFields",
             onAdd ? "w-11/12" : "w-full py-2"
           ].join(" ")}
+          disabled={disabled}
         >
           {values?.map((value) => (
             <option key={value?.id} value={value?.id}>{value?.name}</option>

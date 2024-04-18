@@ -18,9 +18,7 @@ const CronEventsModal = ({ data, onSubmit }) => {
       ...data,
       query: formData.query,
       connection_id: formData.connection,
-      schedule: formData.schedule,
       interval: formData.interval,
-      query_id: formData.id
       };
     await onSubmit(updatedData);
   };
@@ -31,7 +29,9 @@ const CronEventsModal = ({ data, onSubmit }) => {
       className="flex flex-col space-y-4"
     >
       <QuerySelect register={register} defaultValue={data.query_id} />
-      <IntervalSelect register={register} />
+      <label htmlFor="start_dt">Start DateTime</label>
+      <input id="start_dt" type="datetime-local" placeholder="Start DateTime" {...register("start_dt", {})} className="modalFields p-2" disabled/>
+      <IntervalSelect register={register} disabled={true}/>
       <ConnectionSelect register={register} />
       {errors.connection?.type === 'required' && <p role="alert" className="text-red-400 font-medium">Connection is required</p>}
       <div className="h-4" />

@@ -2,7 +2,7 @@ import Select from "@/components/select/Select";
 
 import useIntervals from "@/hooks/use-intervals";
 
-const IntervalSelect = ({ register, onAdd }) => {
+const IntervalSelect = ({ register, onAdd, disabled=false }) => {
   const {
     data: intervals,
     error,
@@ -25,6 +25,7 @@ const IntervalSelect = ({ register, onAdd }) => {
       values={mappedIntervals}
       register={register}
       onAdd={onAdd}
+      disabled={disabled}
     />
   );
 };

@@ -245,7 +245,8 @@ class WP_Query_Push_Endpoints
         $query = "SELECT q.id as id, q.query, q.name, c.name as connection_name
                     FROM $queries_table q
                     INNER JOIN $connections_table c
-                    ON q.id_connection = c.id";
+                    ON q.id_connection = c.id
+                    ORDER BY q.id DESC;";
         return $this->run_query_json( $query );
     }
 

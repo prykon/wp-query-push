@@ -56,7 +56,11 @@ const GlobalFilter = ({
   );
 };
 
-const handleTruncatedCellClick = (value) => {
+const handleTruncatedCellClick = (value, columnName) => {
+  let syntaxLanguage = 'sql';
+  if (columnName == 'response' ) {
+    syntaxLanguage = 'html';
+  }
   const customStyle = {
     backgroundColor: 'transparent'
   }
@@ -66,7 +70,7 @@ const handleTruncatedCellClick = (value) => {
     showConfirmButton: false,
     html: (
       <div className="p-4 font-mono text-sm">
-        <SyntaxHighlighter language="sql" style={monokaiSublime} wrapLongLines={true} customStyle={customStyle}>
+        <SyntaxHighlighter language={syntaxLanguage} style={monokaiSublime} wrapLongLines={true} customStyle={customStyle}>
           {value}
         </SyntaxHighlighter>
       </div>
@@ -177,7 +181,7 @@ const Table = ({ columns, data, runtime, actionButtons, rowActionButtons }) => {
                         className="px-4 py-4 whitespace-nowrap text-sm text-gray-500"
                       >
                         { cell.value?.length > 50 ? (
-                          <a onClick={()=>handleTruncatedCellClick(cell.value)} className="underline cursor-pointer">
+                          <a onClick={()=>handleTruncatedCellClick(cell.value, cell.column.Header)} className="underline cursor-pointer">
                             {cell.value?.substring(0, 50) + '...'}
                           </a>
                         ) : cell.render("Cell")}

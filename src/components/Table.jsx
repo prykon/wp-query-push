@@ -8,6 +8,10 @@ import {
 } from "react-table";
 import PageButton from "@/components/buttons/PageButton";
 
+import SyntaxHighlighter from 'react-syntax-highlighter';
+import { monokaiSublime } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+
+
 //import Swal from "sweetalert2";
 import Swal from "sweetalert2/dist/sweetalert2.js";
 import withReactContent from 'sweetalert2-react-content'
@@ -53,12 +57,20 @@ const GlobalFilter = ({
 };
 
 const handleTruncatedCellClick = (value) => {
+  const customStyle = {
+    backgroundColor: 'transparent'
+  }
   return MySwal.fire({
     title: '',
     showCloseButton: true,
     showConfirmButton: false,
-    html: <div className="p-4 font-mono text-sm">{value}</div>, 
-    //grow: "row"
+    html: (
+      <div className="p-4 font-mono text-sm">
+        <SyntaxHighlighter language="sql" style={monokaiSublime} wrapLongLines={true} customStyle={customStyle}>
+          {value}
+        </SyntaxHighlighter>
+      </div>
+    ),
   });
 };
 

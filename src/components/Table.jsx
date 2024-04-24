@@ -61,6 +61,9 @@ const handleTruncatedCellClick = (value, columnName) => {
   if (columnName == 'response' ) {
     syntaxLanguage = 'html';
   }
+  if (columnName == 'config' ) {
+    syntaxLanguage = 'javascript';
+  }
   const customStyle = {
     backgroundColor: 'transparent'
   }

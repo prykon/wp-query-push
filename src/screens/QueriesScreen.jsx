@@ -12,7 +12,7 @@ const MySwal = withReactContent(Swal);
 
 const showDeleteQueryModal = async(row) => {
   const existingQueryValues = row?.original;
-  if (!existingQueryValues?.query_id) return;
+  if (!existingQueryValues?.id) return;
   const handleDeleteQueryModalSubmit = async() => {
     const res = await deleteQuery(existingQueryValues);
     if (res.error) {
@@ -96,7 +96,7 @@ const QueriesScreen = () => {
             {
               render: (row) => (
                 <button onClick={() => showEditQueryModal(row)}>
-                  <EditIcon /> 
+                  <EditIcon />
                 </button>
               ),
             },

@@ -78,6 +78,13 @@ const handleTruncatedCellClick = (value, columnName) => {
   });
 };
 
+const headerToTitleCase = (columnHeader) => {
+  columnHeader = columnHeader.replace('_', ' ');
+  return columnHeader.toLowerCase().split(' ').map(function (word) {
+      return (word.charAt(0).toUpperCase() + word.slice(1));
+  }).join(' ');
+};
+
 const Table = ({ columns, data, runtime, actionButtons, rowActionButtons }) => {
   const {
     getTableProps,
@@ -139,7 +146,7 @@ const Table = ({ columns, data, runtime, actionButtons, rowActionButtons }) => {
                   >
                     <div className="flex justify-center space-x-1">
                       <span className=" hover:text-gray-300">
-                        {column.render("Header")}
+                        {headerToTitleCase(column.render("Header"))}
                       </span>
                       <span>
                         {column.isSorted

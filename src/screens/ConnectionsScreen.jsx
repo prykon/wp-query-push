@@ -95,7 +95,7 @@ const ConnectionsScreen = () => {
   }, [data]);
   const memoizedData = useMemo(() => data, [data]);
   return(
-    <section className="w-full my-12 overflow-hidden">
+    <section className="w-full overflow-hidden">
       { data?.length > 0 ? (
         <Table
           columns={memoizedColumns}

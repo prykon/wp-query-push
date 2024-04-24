@@ -22,7 +22,7 @@ const TableSection = React.memo(() => {
   const memoizedData = useMemo(() => resultSet, [resultSet?.length]);
   //<img src={Loader} className="w-20 mx-auto" alt="loader" />
   return (
-    <section className="w-full my-12 overflow-hidden">
+    <section className="w-full overflow-hidden">
       { resultSet?.length > 0 ? (
         <Table
           columns={memoizedColumns}

@@ -29,7 +29,7 @@ const GlobalFilter = ({
   }, 200);
   return (
     <>
-      <label className="flex gap-x-2 items-baseline">
+      <label className="flex gap-x-2 items-baseline my-4">
         <span className="hidden md:inline-block mr-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"

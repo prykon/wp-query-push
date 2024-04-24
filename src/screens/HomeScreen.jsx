@@ -5,6 +5,14 @@ import Changelog from "@/components/Changelog";
 const HomeScreen = () => {
   const changelogData = [
     {
+      version: "0.8",
+      changes: [
+        "Queries and Cron Events tabs",
+        "Added endpoints",
+        "Misc UI improvements"
+      ]
+    },
+    {
       version: "0.7",
       changes: [
         "Support WP Instances installed in subdirectories"

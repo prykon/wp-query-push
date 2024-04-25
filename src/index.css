@@ -18,3 +18,8 @@
   color: red;
   font-weight: 600;
 }
+
+.react-tabs__tab {
+  margin-bottom:0px;
+  bottom:0px;
+}

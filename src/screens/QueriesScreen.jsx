@@ -89,6 +89,7 @@ const QueriesScreen = () => {
     <section className="w-full overflow-hidden">
       { data?.length > 0 ? (
         <Table
+          name='Queries'
           columns={memoizedColumns}
           data={memoizedData}
 

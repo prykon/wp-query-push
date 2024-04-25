@@ -88,7 +88,7 @@ const headerToTitleCase = (columnHeader) => {
   }).join(' ');
 };
 
-const Table = ({ columns, data, runtime, actionButtons, rowActionButtons }) => {
+const Table = ({ name='untitled', columns, data, runtime, actionButtons, rowActionButtons }) => {
   const {
     getTableProps,
     getTableBodyProps,
@@ -118,6 +118,7 @@ const Table = ({ columns, data, runtime, actionButtons, rowActionButtons }) => {
   return (
     <>
       <div className="flex justify-between items-center">
+      <h3 class="text-lg leading-6 font-medium text-gray-900 p-4">{name}</h3>
         <GlobalFilter
           preGlobalFilteredRows={preGlobalFilteredRows}
           globalFilter={state.globalFilter}

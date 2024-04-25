@@ -98,6 +98,7 @@ const ConnectionsScreen = () => {
     <section className="w-full overflow-hidden">
       { data?.length > 0 ? (
         <Table
+          name='Connections'
           columns={memoizedColumns}
           data={memoizedData}
           //actionButtons={<DownloadButton />}

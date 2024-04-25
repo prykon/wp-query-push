@@ -42,6 +42,7 @@ const Editor = ({
   }, [query, onSubmit]);
   return (
     <main className="w-full">
+      <h3 className="text-lg leading-6 p-4 font-medium text-gray-900">Editor</h3>
       <label htmlFor="editor">
         <AceEditor
           id="editor"

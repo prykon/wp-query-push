@@ -101,7 +101,7 @@ const headerToTitleCase = (columnHeader) => {
   }).join(' ');
 };
 
-const Table = ({ name='untitled', columns, data, runtime, actionButtons, rowActionButtons, headerColor = 'bg-indigo-900' }) => {
+const Table = ({ name='untitled', columns, data, runtime, actionButtons, rowActionButtons, headerColor = '#312E81' }) => {
   const {
     getTableProps,
     getTableBodyProps,
@@ -130,6 +130,7 @@ const Table = ({ name='untitled', columns, data, runtime, actionButtons, rowActi
   );
   return (
     <>
+    <style>{`.react-tabs__tab:focus:after { background: ${headerColor}; }`}</style>
       <div className="flex justify-between items-center">
       <h3 class="text-lg leading-6 font-medium text-gray-900 p-4">{name}</h3>
         <GlobalFilter
@@ -152,7 +153,7 @@ const Table = ({ name='untitled', columns, data, runtime, actionButtons, rowActi
           {...getTableProps()}
           className="min-w-full divide-y divide-gray-200 border-2 border-neutral-900"
         >
-          <thead className={headerColor}>
+          <thead style={{background: headerColor}}>
             {headerGroups.map((headerGroup) => (
               <tr {...headerGroup.getHeaderGroupProps()}>
                 {headerGroup.headers.map((column) => (

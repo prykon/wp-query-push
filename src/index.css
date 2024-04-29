@@ -26,6 +26,10 @@
 
 .react-tabs__tab:focus:after{
   background: none;
+  bottom: -1px;
+  height: 3px;
+  left: 0px;
+  right: 0px;
 }
 
 .code {

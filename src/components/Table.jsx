@@ -101,7 +101,7 @@ const headerToTitleCase = (columnHeader) => {
   }).join(' ');
 };
 
-const Table = ({ name='untitled', columns, data, runtime, actionButtons, rowActionButtons, headerColor = '#312E81' }) => {
+const Table = ({ name='untitled', columns, data, runtime, actionButtons, rowActionButtons, headerColor = '#666666' }) => {
   const {
     getTableProps,
     getTableBodyProps,

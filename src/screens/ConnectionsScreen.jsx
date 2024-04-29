@@ -101,6 +101,7 @@ const ConnectionsScreen = () => {
           name='Connections'
           columns={memoizedColumns}
           data={memoizedData}
+          headerColor='#312E81'
           //actionButtons={<DownloadButton />}
           rowActionButtons={[
             {

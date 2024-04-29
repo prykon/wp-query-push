@@ -25,7 +25,7 @@
 }
 
 .react-tabs__tab:focus:after{
-  background: none;
+  background: #666666;
   bottom: -1px;
   height: 3px;
   left: 0px;

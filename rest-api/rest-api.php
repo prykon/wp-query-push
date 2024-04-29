@@ -35,7 +35,7 @@ class WP_Query_Push_Endpoints
             $namespace, '/send', [
                 'methods' => 'POST',
                 'callback' => [ $this , 'handle_send' ],
-                'permission_callback' => [ $this, 'nonce_check' ],
+                'permission_callback' => [ $this, 'can_access_api' ],
             ]
         );
 
@@ -43,7 +43,7 @@ class WP_Query_Push_Endpoints
             $namespace, '/connections', [
                 'methods' => 'POST',
                 'callback' => [ $this , 'handle_post_connection' ],
-                'permission_callback' => [ $this, 'nonce_check' ],
+                'permission_callback' => [ $this, 'can_access_api' ],
             ]
         );
 
@@ -51,7 +51,7 @@ class WP_Query_Push_Endpoints
             $namespace, '/connections/(?P<id>\d+)', [
                 'methods' => 'PUT',
                 'callback' => [ $this , 'handle_put_connection' ],
-                'permission_callback' => [ $this, 'nonce_check' ],
+                'permission_callback' => [ $this, 'can_access_api' ],
             ]
         );
 
@@ -59,7 +59,7 @@ class WP_Query_Push_Endpoints
             $namespace, '/connections/(?P<id>\d+)', [
                 'methods' => 'DELETE',
                 'callback' => [ $this , 'handle_delete_connection' ],
-                'permission_callback' => [ $this, 'nonce_check' ],
+                'permission_callback' => [ $this, 'can_access_api' ],
             ]
         );
 
@@ -67,7 +67,7 @@ class WP_Query_Push_Endpoints
             $namespace, '/schedules', [
                 'methods' => 'POST',
                 'callback' => [ $this, 'handle_post_scheduled_task' ],
-                'permission_callback' => [ $this, 'nonce_check' ],
+                'permission_callback' => [ $this, 'can_access_api' ],
             ]
         );
 
@@ -75,7 +75,7 @@ class WP_Query_Push_Endpoints
             $namespace, '/logs', [
                 'methods' => 'GET',
                 'callback' => [ $this, 'handle_get_logs' ],
-                'permission_callback' => [ $this, 'nonce_check' ],
+                'permission_callback' => [ $this, 'can_access_api' ],
             ]
         );
 

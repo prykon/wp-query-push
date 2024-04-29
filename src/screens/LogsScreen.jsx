@@ -25,6 +25,7 @@ const LogsScreen = () => {
           name='Logs'
           columns={memoizedColumns}
           data={memoizedData}
+          headerColor='bg-teal-500'
           //actionButtons={<DownloadButton />}
         />
       ) : (

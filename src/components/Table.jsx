@@ -10,6 +10,8 @@ import PageButton from "@/components/buttons/PageButton";
 
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { monokaiSublime } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import beautify from 'js-beautify';
+import * as sqlFormatter from 'sql-formatter';
 
 
 //import Swal from "sweetalert2";
@@ -57,12 +59,23 @@ const GlobalFilter = ({
 };
 
 const handleTruncatedCellClick = (value, columnName) => {
-  let syntaxLanguage = 'sql';
+  let syntaxLanguage = 'text';
+  if (columnName == 'query' ) {
+    try {
+      value = sqlFormatter.format(value);
+      syntaxLanguage = 'sql';
+    } catch (error) {
+      value = 'This is not a proper SQL query. Please edit it and try again.';
+    }
+  }
+
   if (columnName == 'response' ) {
     syntaxLanguage = 'html';
+    value = beautify.html(value);
   }
   if (columnName == 'config' ) {
     syntaxLanguage = 'javascript';
+    value = beautify.js(value);
   }
   const customStyle = {
     backgroundColor: 'transparent'
@@ -88,7 +101,7 @@ const headerToTitleCase = (columnHeader) => {
   }).join(' ');
 };
 
-const Table = ({ name='untitled', columns, data, runtime, actionButtons, rowActionButtons }) => {
+const Table = ({ name='untitled', columns, data, runtime, actionButtons, rowActionButtons, headerColor = 'bg-indigo-900' }) => {
   const {
     getTableProps,
     getTableBodyProps,
@@ -139,7 +152,7 @@ const Table = ({ name='untitled', columns, data, runtime, actionButtons, rowActi
           {...getTableProps()}
           className="min-w-full divide-y divide-gray-200 border-2 border-neutral-900"
         >
-          <thead className="bg-indigo-900">
+          <thead className={headerColor}>
             {headerGroups.map((headerGroup) => (
               <tr {...headerGroup.getHeaderGroupProps()}>
                 {headerGroup.headers.map((column) => (
@@ -169,7 +182,7 @@ const Table = ({ name='untitled', columns, data, runtime, actionButtons, rowActi
                   >
                     <div className="flex justify-center space-x-1">
                       <span className=" hover:text-gray-300">
-                        actions
+                        Actions
                       </span>
                     </div>
                   </th>

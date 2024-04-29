@@ -92,7 +92,7 @@ const QueriesScreen = () => {
           name='Queries'
           columns={memoizedColumns}
           data={memoizedData}
-
+          headerColor='bg-rose-600'
           rowActionButtons={[
             {
               render: (row) => (

@@ -123,7 +123,7 @@ const CronEventsScreen = () => {
           name='Cron Events'
           columns={memoizedColumns}
           data={memoizedData}
-
+          headerColor='bg-violet-900'
           rowActionButtons={[
             {
               render: (row) => (
